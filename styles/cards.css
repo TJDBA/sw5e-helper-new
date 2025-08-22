@@ -1,0 +1,177 @@
+/* SW5E Helper - Chat Card Styles */
+
+.sw5e-helper-card {
+  .weapon-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .weapon-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    border: 1px solid var(--color-border-light);
+  }
+
+  .weapon-title {
+    flex: 1;
+    font-weight: bold;
+  }
+
+  .card-damage-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .gm-toolbar {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .target-separator {
+    margin: 8px 0;
+    border: none;
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  .target-row {
+    border: 1px solid var(--color-border-light);
+    border-radius: 4px;
+    margin: 2px 0;
+
+    &.missing {
+      opacity: 0.6;
+      background: var(--color-bg-disabled);
+    }
+
+    &.even {
+      background: var(--color-bg-option);
+    }
+
+    &.odd {
+      background: var(--color-bg-alt);
+    }
+
+    summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .expand-arrow {
+      transition: transform 0.2s;
+    }
+
+    &[open] .expand-arrow {
+      transform: rotate(90deg);
+    }
+
+    .portrait {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--color-border-light);
+    }
+
+    .tname {
+      flex: 1;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .attack-total,
+    .damage-summary,
+    .save-summary {
+      font-family: var(--font-mono);
+    }
+
+    .status-icon {
+      font-size: 14px;
+    }
+
+    .status-hit { color: #00aa00; }
+    .status-miss { color: #cc0000; }
+    .status-crit { color: #ff6600; }
+    .status-fumble { color: #660000; }
+    .status-saveonly { color: #0066cc; }
+    .status-pending { color: #888888; }
+
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .missing {
+      color: #cc0000;
+      font-style: italic;
+    }
+
+    .row-body {
+      padding: 8px;
+      border-top: 1px solid var(--color-border-light);
+      background: var(--color-bg-option);
+    }
+
+    .save-line,
+    .damage-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
+    }
+
+    .save-dc {
+      font-weight: bold;
+      cursor: help;
+    }
+
+    .save-result {
+      font-family: var(--font-mono);
+      font-weight: bold;
+    }
+
+    .applied-tag {
+      color: #00aa00;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .dmg-val {
+      font-family: var(--font-mono);
+      font-weight: bold;
+    }
+
+    .icons {
+      display: flex;
+      gap: 2px;
+    }
+  }
+
+  .info-icon {
+    cursor: help;
+    color: var(--color-text-light);
+    font-size: 12px;
+    margin-left: 4px;
+  }
+
+  .info-icon:hover {
+    color: var(--color-text-primary);
+  }
+}

@@ -1,0 +1,107 @@
+/* SW5E Helper - Dialog Styles */
+
+.sw5e-helper-attack,
+.sw5e-helper-damage {
+  .window-content {
+    padding: 10px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-group label {
+    flex: 0 0 120px;
+    font-weight: bold;
+  }
+
+  .form-group select,
+  .form-group input[type="text"],
+  .form-group input[type="number"] {
+    flex: 1;
+  }
+
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .radio-group {
+    display: flex;
+    gap: 15px;
+  }
+
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .smart-section,
+  .save-section {
+    border: 1px solid var(--color-border-light);
+    border-radius: 4px;
+    padding: 10px;
+    background: var(--color-bg-alt);
+  }
+
+  .section-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--color-text-header);
+  }
+}
+
+/* Extra rows for damage dialog */
+.modrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.modrow:last-child {
+  border-bottom: none;
+}
+
+.mod-formula,
+.mod-type {
+  flex: 1;
+}
+
+.mod-incrit {
+  flex: 0 0 auto;
+}
+
+.del-row-btn {
+  background: #cc0000;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 6px;
+  cursor: pointer;
+  font-size: 12px;
+}

@@ -1,0 +1,99 @@
+<div class="sw5e-helper-card" data-message-id="{{messageId}}">
+  <div class="weapon-banner">
+    <img src="{{weaponImg}}" alt="Weapon" class="weapon-icon" />
+    <div class="weapon-title">
+      <span class="name">{{weaponName}}</span>
+      {{#if attackInfo}}
+      <span class="info-icon" data-action="show-attack-formula" title="{{localize "SW5EHELPER.AttackFormulaTooltip"}}">ⓘ</span>
+      {{/if}}
+    </div>
+  </div>
+  
+  <div class="card-damage-controls">
+    {{#unless hideQuickDamage}}
+    <a class="icon-btn" data-action="card-quick-damage" title="{{localize "SW5EHELPER.QuickDamage"}}" aria-label="{{localize "SW5EHELPER.QuickDamage"}}">⚡</a>
+    {{/unless}}
+    {{#unless hideModDamage}}
+    <a class="icon-btn" data-action="card-mod-damage" title="{{localize "SW5EHELPER.ModDamage"}}" aria-label="{{localize "SW5EHELPER.ModDamage"}}">🎲</a>
+    {{/unless}}
+    
+    {{#if isGM}}
+    <div class="gm-toolbar">
+      {{#unless hideRollAllSaves}}
+      <a class="mini-btn" data-action="gm-roll-all-saves">{{localize "SW5EHELPER.RollAllSaves"}}</a>
+      {{/unless}}
+      <a class="mini-btn" data-action="gm-apply-all-full">{{localize "SW5EHELPER.ApplyAllFull"}}</a>
+    </div>
+    {{/if}}
+    
+    <a class="mini-btn" data-action="toggle-all">{{#if expandedAll}}{{localize "SW5EHELPER.CollapseAll"}}{{else}}{{localize "SW5EHELPER.ExpandAll"}}{{/if}}</a>
+  </div>
+
+  <hr class="target-separator" />
+
+  {{#each targets}}
+  <details class="target-row{{#if missing}} missing{{/if}}{{#if (eq @index 0)}} even{{else}}{{#if (eq (mod @index 2) 0)}} even{{else}} odd{{/if}}{{/if}}" data-target-ref="{{ref}}" {{#if ../expandedAll}}open{{/if}}>
+    <summary>
+      <span class="expand-arrow">▶</span>
+      <img class="portrait" src="{{img}}" />
+      <span class="tname" data-action="{{#if canControl}}select-token{{else}}ping-token{{/if}}" data-target-ref="{{ref}}">{{name}}</span>
+      
+      {{#if ../saveOnly}}
+      <span class="save-summary">
+        {{#if save.ability}}{{uppercase save.ability}}{{else}}SAVE{{/if}} DC {{#if save.dc}}{{save.dc}}{{else}}—{{/if}}
+        {{#if save.roll}}
+        | {{save.roll.total}} {{#if (eq save.roll.outcome "success")}}✅{{else if (eq save.roll.outcome "fail")}}❌{{else if (eq save.roll.outcome "critical")}}💥{{else if (eq save.roll.outcome "fumble")}}💩{{/if}}
+        {{/if}}
+      </span>
+      {{else}}
+      <span class="attack-total">{{attackDisplay}} <span class="status-icon {{statusClass}}" title="{{statusText}}">{{statusIcon}}</span></span>
+      <span class="damage-summary">{{damageDisplay}}</span>
+      {{/if}}
+      
+      <span class="row-actions">
+        {{#if damage.applied}}
+        ✓ {{#if damage.info}}<span class="info-icon" data-action="show-damage-formula" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.DamageFormulaTooltip"}}">ⓘ</span>{{/if}}
+        {{else if damage.total}}
+        <a class="icon-btn" data-action="apply-full" title="{{localize "SW5EHELPER.ApplyFull"}}" aria-label="{{localize "SW5EHELPER.ApplyFull"}}" data-target-ref="{{ref}}">💯</a>
+        <a class="icon-btn" data-action="apply-half" title="{{localize "SW5EHELPER.ApplyHalf"}}" aria-label="{{localize "SW5EHELPER.ApplyHalf"}}" data-target-ref="{{ref}}">½</a>
+        {{#if damage.info}}<span class="info-icon" data-action="show-damage-formula" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.DamageFormulaTooltip"}}">ⓘ</span>{{/if}}
+        {{/if}}
+        {{#if missing}}<span class="missing">[{{localize "SW5EHELPER.Missing"}}]</span>{{/if}}
+      </span>
+    </summary>
+    
+    <div class="row-body">
+      {{#if ../hasSave}}
+      <div class="save-line">
+        <span>{{#if save.ability}}{{uppercase save.ability}}{{else}}{{localize "SW5EHELPER.Save"}}{{/if}} | DC: 
+          <span class="save-dc" {{#if save.formula}}title="{{save.formula}}"{{/if}}>{{#if save.dc}}{{save.dc}}{{else}}—{{/if}}</span>
+        </span>
+        {{#if save.roll}}
+        <span class="save-result">{{save.roll.total}} {{#if (eq save.roll.outcome "success")}}✅{{else if (eq save.roll.outcome "fail")}}❌{{else if (eq save.roll.outcome "critical")}}💥{{else if (eq save.roll.outcome "fumble")}}💩{{/if}}</span>
+        {{else}}
+        <a class="mini-btn" data-action="roll-save" data-target-ref="{{ref}}">{{localize "SW5EHELPER.RollSave"}}</a>
+        {{/if}}
+      </div>
+      {{/if}}
+      
+      <div class="damage-line">
+        <span>💥 {{localize "SW5EHELPER.Damage"}}:</span>
+        <span class="dmg-val">{{#if damage.total}}{{damage.total}}{{else}}—{{/if}}</span>
+        {{#if damage.applied}}
+        <span class="applied-tag">[{{uppercase damage.applied}}]</span>
+        {{else if damage.total}}
+        <span class="icons">
+          <a class="icon-btn" data-action="row-mod-damage" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.ModDamage"}}" aria-label="{{localize "SW5EHELPER.ModDamage"}}">🎲</a>
+          <a class="icon-btn" data-action="apply-full" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.ApplyFull"}}" aria-label="{{localize "SW5EHELPER.ApplyFull"}}">💯</a>
+          <a class="icon-btn" data-action="apply-half" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.ApplyHalf"}}" aria-label="{{localize "SW5EHELPER.ApplyHalf"}}">½</a>
+          <a class="icon-btn" data-action="apply-none" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.ApplyNone"}}" aria-label="{{localize "SW5EHELPER.ApplyNone"}}">Ø</a>
+        </span>
+        {{/if}}
+        {{#if damage.info}}
+        <span class="info-icon" data-action="show-damage-formula" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.DamageFormulaTooltip"}}">ⓘ</span>
+        {{/if}}
+      </div>
+    </div>
+  </details>
+  {{/each}}
+</div>

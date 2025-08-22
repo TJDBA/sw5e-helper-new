@@ -1,0 +1,27 @@
+{
+  "SW5EHELPER": {
+    "AttackTitle": "Attack Configuration",
+    "DamageTitle": "Damage Configuration",
+    "QuickDamage": "Quick Damage",
+    "ModDamage": "Modify Damage",
+    "ApplyFull": "Apply Full",
+    "ApplyHalf": "Apply Half",
+    "ApplyNone": "Apply None",
+    "RollSave": "Roll Save",
+    "RollAllSaves": "Roll All Saves",
+    "ApplyAllFull": "Apply All Full",
+    "ExpandAll": "Expand All",
+    "CollapseAll": "Collapse All",
+    "Save": "Save",
+    "Damage": "Damage",
+    "Missing": "Missing",
+    "NoActor": "No actor selected",
+    "SmartValuesRequired": "Smart weapon values required",
+    "SaveOnlyNeedsFields": "Save-only attacks require ability and DC",
+    "LoadedLast": "Loaded last used settings",
+    "None": "None",
+    "PresetWrongWeapon": "Preset is for a different weapon",
+    "AttackFormulaTooltip": "Click to show attack formula",
+    "DamageFormulaTooltip": "Click to show damage formula"
+  }
+}

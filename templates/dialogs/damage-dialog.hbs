@@ -1,0 +1,96 @@
+<form class="damage-dialog-form">
+  {{#unless weaponLocked}}
+  <div class="form-group">
+    <label>{{localize "SW5EHELPER.Weapon"}}</label>
+    <select name="weaponId">
+      {{#each weapons}}
+      <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>
+      {{/each}}
+    </select>
+  </div>
+  {{/unless}}
+
+  <div class="form-group">
+    <label>{{localize "SW5EHELPER.Ability"}}</label>
+    <select name="ability">
+      <option value="">{{localize "SW5EHELPER.Auto"}}</option>
+      {{#each abilities}}
+      <option value="{{this}}" {{#if (eq ../ability this)}}selected{{/if}}>{{capitalize this}}</option>
+      {{/each}}
+    </select>
+  </div>
+
+  <div class="checkbox-group">
+    <div class="checkbox-item">
+      <input type="checkbox" name="offhand" id="offhand" {{#if offhand}}checked{{/if}}>
+      <label for="offhand">{{localize "SW5EHELPER.Offhand"}}</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" name="separate" id="separate" {{#if separate}}checked{{/if}}>
+      <label for="separate">{{localize "SW5EHELPER.SeparateRolls"}}</label>
+    </div>
+    <div class="checkbox-item">
+      <input type="checkbox" name="isCrit" id="is-crit" {{#if isCrit}}checked{{/if}}>
+      <label for="is-crit">{{localize "SW5EHELPER.Critical"}}</label>
+    </div>
+  </div>
+
+  {{#if showSmart}}
+  <div class="smart-section">
+    <div class="section-title">{{localize "SW5EHELPER.SmartWeapon"}}</div>
+    <div class="checkbox-item">
+      <input type="checkbox" name="smart" id="smart" {{#if smart}}checked{{/if}}>
+      <label for="smart">{{localize "SW5EHELPER.UseSmartOverride"}}</label>
+    </div>
+    <div class="form-group">
+      <label>{{localize "SW5EHELPER.AbilityModifier"}}</label>
+      <input type="number" name="smartAbility" value="{{smartAbility}}" step="1">
+    </div>
+  </div>
+  {{/if}}
+
+  <div class="weapon-damage-section">
+    <div class="section-title">{{localize "SW5EHELPER.WeaponDamage"}}</div>
+    {{#each weaponDamageParts}}
+    <div class="damage-part">
+      <strong>{{#if isBase}}Base{{else}}Additional{{/if}}:</strong>
+      <span class="formula">{{formula}}</span>
+      <span class="type">{{typeLabel}}</span>
+    </div>
+    {{/each}}
+    {{#if showBrutal}}
+    <div class="brutal-info">
+      <strong>Brutal:</strong> <span>{{brutalXdY}}</span>
+    </div>
+    {{/if}}
+  </div>
+
+  <div class="extra-damage-section">
+    <div class="section-title">
+      {{localize "SW5EHELPER.ExtraDamage"}}
+      <button type="button" data-action="add-row" style="float: right;">{{localize "SW5EHELPER.Add"}}</button>
+    </div>
+    <div class="extra-rows">
+      {{#each extraRows}}
+      <div class="modrow" data-id="{{id}}">
+        <input type="text" class="mod-formula" placeholder="1d6" value="{{formula}}">
+        <select class="mod-type">
+          {{#each ../damageTypes}}
+          <option value="{{this}}" {{#if (eq this ../type)}}selected{{/if}}>{{capitalize this}}</option>
+          {{/each}}
+        </select>
+        <label class="checkbox-item">
+          <input type="checkbox" class="mod-incrit" {{#if inCrit}}checked{{/if}}>
+          <span>{{localize "SW5EHELPER.OnCrit"}}</span>
+        </label>
+        <button type="button" data-action="del-row" class="del-row-btn">×</button>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="button-row">
+    <button type="button" data-action="cancel">{{localize "Cancel"}}</button>
+    <button type="button" data-action="roll">{{localize "SW5EHELPER.Roll"}}</button>
+  </div>
+</form>

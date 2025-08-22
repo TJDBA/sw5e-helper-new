@@ -1,0 +1,57 @@
+/* SW5E Helper - Main Module Styles */
+
+.sw5e-helper {
+  font-family: var(--font-primary);
+}
+
+.sw5e-helper-card {
+  border: 1px solid var(--color-border-dark);
+  border-radius: 4px;
+  background: var(--color-bg-option);
+  margin: 4px 0;
+  padding: 8px;
+}
+
+.sw5e-helper-manual-damage {
+  border: 1px solid var(--color-border-dark);
+  border-radius: 4px;
+  background: var(--color-bg-option);
+  padding: 8px;
+}
+
+/* Common button styles */
+.sw5e-helper .icon-btn {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 0 2px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 3px;
+  background: var(--color-button-bg);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.sw5e-helper .icon-btn:hover {
+  background: var(--color-button-bg-hover);
+  border-color: var(--color-border-dark);
+}
+
+.sw5e-helper .mini-btn {
+  display: inline-block;
+  padding: 2px 4px;
+  margin: 0 1px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 2px;
+  background: var(--color-button-bg);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.sw5e-helper .mini-btn:hover {
+  background: var(--color-button-bg-hover);
+  border-color: var(--color-border-dark);
+}
