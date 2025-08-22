@@ -13,35 +13,65 @@ export class SaveAction {
   /**
    * Validate save context
    * @param {object} context - Save context
-   * @returns {void}
+   * @returns {{ok: boolean, errors: string[], warnings: string[]}} Validation result
    */
   static validate(context = {}) {
+    const errors = [];
+    const warnings = [];
+
     if (!context.targetIds || context.targetIds.length === 0) {
-      throw new Error("No targets provided for save action");
+      errors.push("No targets provided for save action");
     }
     
     if (!context.config?.ability) {
-      throw new Error("No save ability specified");
+      errors.push("No save ability specified");
+    } else {
+      // Validate ability is valid
+      const validAbilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+      if (!validAbilities.includes(context.config.ability.toLowerCase())) {
+        errors.push("Invalid save ability specified");
+      }
     }
     
     if (!context.config?.dc) {
-      throw new Error("No save DC specified");
+      errors.push("No save DC specified");
+    } else if (typeof context.config.dc !== 'number' || context.config.dc < 1) {
+      errors.push("Save DC must be a positive number");
     }
+
+    // Validate targets exist
+    if (context.targetIds?.length > 0) {
+      let missingTargets = 0;
+      for (const targetId of context.targetIds) {
+        if (!this.getActorFromTargetId(targetId)) {
+          missingTargets++;
+        }
+      }
+      if (missingTargets > 0) {
+        warnings.push(`${missingTargets} targets not found or invalid`);
+      }
+    }
+
+    return {
+      ok: errors.length === 0,
+      errors,
+      warnings
+    };
   }
 
   /**
    * Check permissions for save action
    * @param {object} context - Save context
-   * @returns {void}
+   * @returns {{ok: boolean, reason?: string}} Permission result
    */
   static checkPermission(context = {}) {
     // GM can always make saves
     if (game.user?.isGM) {
-      return;
+      return { ok: true };
     }
     
     // Check if user owns all target actors
-    for (const targetId of context.targetIds) {
+    for (const targetId of context.targetIds || []) {
       const actor = this.getActorFromTargetId(targetId);
       if (!actor) continue;
       
@@ -49,9 +79,14 @@ export class SaveAction {
       const required = CONST.DOCUMENT_PERMISSION_LEVELS?.OBSERVER ?? 2;
       
       if (ownership < required) {
-        throw new Error(`Insufficient permissions for target: ${actor.name}`);
+        return { 
+          ok: false, 
+          reason: `Insufficient permissions for target: ${actor.name}` 
+        };
       }
     }
+
+    return { ok: true };
   }
 
   /**

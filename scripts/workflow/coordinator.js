@@ -97,6 +97,9 @@ export class WorkflowCoordinator {
     /** @type {Map<string, Object>} */
     this.actions = new Map();
     
+    /** @type {Map<string, Function>} */
+    this.conditions = new Map();
+    
     /** @type {Map<string, Object>} */
     this.activeExecutions = new Map();
     
@@ -140,36 +143,43 @@ export class WorkflowCoordinator {
   /**
    * Register built-in workflow definitions
    */
-  registerBuiltinWorkflows() {
-    // Basic attack workflow
-    this.defineWorkflow('attackWorkflow', {
-      name: 'attackWorkflow',
-      nodes: {
-        start: { type: 'action', action: 'attack', next: 'checkTargets' },
-        checkTargets: { 
-          type: 'conditional',
-          condition: 'ctx.results.attack?.data?.targets?.length > 0',
-          onTrue: 'rollSaves',
-          onFalse: 'end'
+  async registerBuiltinWorkflows() {
+    try {
+      // Import workflow graphs and conditions
+      const graphs = await import('./graphs/index.js');
+      
+      // Register all workflows from the registry
+      for (const entry of graphs.workflowRegistry) {
+        this.defineWorkflow(entry.name, entry.workflow);
+        this.log('debug', `Registered workflow: ${entry.displayName}`, { 
+          name: entry.name, 
+          category: entry.category 
+        });
+      }
+
+      // Register all condition functions
+      for (const [name, condition] of Object.entries(graphs.conditions)) {
+        this.registerCondition(name, condition);
+      }
+
+      this.log('info', 'Built-in workflows registered', { 
+        workflowCount: graphs.workflowRegistry.length,
+        conditionCount: Object.keys(graphs.conditions).length
+      });
+
+    } catch (error) {
+      this.log('error', 'Failed to register built-in workflows', { error: error.message });
+      
+      // Fallback: Register a minimal attack workflow
+      this.defineWorkflow('basicAttackWorkflow', {
+        name: 'basicAttackWorkflow',
+        nodes: {
+          start: { type: 'action', action: 'attack', next: 'end' },
+          end: { type: 'end' }
         },
-        rollSaves: {
-          type: 'parallel',
-          branches: [
-            { steps: [{ type: 'action', action: 'save' }] }
-          ],
-          next: 'applyDamage'
-        },
-        applyDamage: {
-          type: 'conditional', 
-          condition: 'shouldApplyDamage',
-          onTrue: 'applyStep',
-          onFalse: 'end'
-        },
-        applyStep: { type: 'action', action: 'apply', next: 'end' },
-        end: { type: 'end' }
-      },
-      start: 'start'
-    });
+        start: 'start'
+      });
+    }
   }
 
   /**
@@ -193,6 +203,29 @@ export class WorkflowCoordinator {
     });
     
     this.log('debug', 'Action registered', { name });
+  }
+
+  /**
+   * Register a condition function with the coordinator
+   * @param {string} name - Condition name
+   * @param {Function} condition - Condition evaluation function
+   */
+  registerCondition(name, condition) {
+    if (typeof condition !== 'function') {
+      throw new Error(`Condition ${name} must be a function`);
+    }
+    
+    this.conditions.set(name, condition);
+    this.log('debug', 'Condition registered', { name });
+  }
+
+  /**
+   * Get registered condition function
+   * @param {string} name - Condition name
+   * @returns {Function|null} Condition function
+   */
+  getCondition(name) {
+    return this.conditions.get(name) || null;
   }
 
   /**

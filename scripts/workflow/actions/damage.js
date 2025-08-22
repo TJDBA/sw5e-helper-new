@@ -16,43 +16,72 @@ export class DamageAction {
   /**
    * Validate damage context
    * @param {object} context - Damage context
-   * @returns {void}
+   * @returns {{ok: boolean, errors: string[], warnings: string[]}} Validation result
    */
   static validate(context = {}) {
+    const errors = [];
+    const warnings = [];
+
     if (!context.actorId) {
-      throw new Error("No actor provided for damage action");
+      errors.push("No actor provided for damage action");
     }
     
     if (!context.itemId) {
-      throw new Error("No item provided for damage action");
+      errors.push("No item provided for damage action");
     }
     
     if (!context.config) {
-      throw new Error("No damage configuration provided");
+      errors.push("No damage configuration provided");
     }
+
+    // Validate actor exists
+    if (context.actorId && !game.actors?.get(context.actorId)) {
+      errors.push("Actor not found");
+    }
+
+    // Validate item exists
+    if (context.actorId && context.itemId) {
+      const actor = game.actors?.get(context.actorId);
+      if (actor && !actor.items?.get(context.itemId)) {
+        errors.push("Item not found on actor");
+      }
+    }
+
+    // Validate targets
+    if (context.targetIds && context.targetIds.length === 0) {
+      warnings.push("No targets specified for damage action");
+    }
+
+    return {
+      ok: errors.length === 0,
+      errors,
+      warnings
+    };
   }
 
   /**
    * Check permissions for damage action
    * @param {object} context - Damage context  
-   * @returns {void}
+   * @returns {{ok: boolean, reason?: string}} Permission result
    */
   static checkPermission(context = {}) {
     const actor = game.actors?.get(context.actorId);
     if (!actor) {
-      throw new Error("Actor not found for permission check");
+      return { ok: false, reason: "Actor not found for permission check" };
     }
     
     if (game.user?.isGM) {
-      return;
+      return { ok: true };
     }
     
     const ownership = actor.ownership?.[game.user.id] ?? (actor.isOwner ? 3 : 0);
     const required = CONST.DOCUMENT_PERMISSION_LEVELS?.OWNER ?? 3;
     
     if (ownership < required) {
-      throw new Error("Insufficient permissions to control this actor");
+      return { ok: false, reason: "Insufficient permissions to control this actor" };
     }
+
+    return { ok: true };
   }
   /**
    * Roll quick damage without dialog
@@ -216,25 +245,62 @@ export class DamageAction {
    */
   static async executeManual(options) {
     const { actor, item, config, targetRefs } = options;
+    const startTime = Date.now();
 
-    // Build crit map - manual crit applies to all
-    const critMap = Object.fromEntries(
-      targetRefs.map(ref => [ref, !!config.isCrit])
-    );
+    try {
+      // Build crit map - manual crit applies to all
+      const critMap = Object.fromEntries(
+        targetRefs.map(ref => [ref, !!config.isCrit])
+      );
 
-    const result = await this.executeRoll({
-      actor,
-      item,
-      targets: targetRefs.map(ref => ({ ref })),
-      config,
-      critMap,
-      separate: !!config.separate
-    });
+      const rollResult = await this.executeRoll({
+        actor,
+        item,
+        targets: targetRefs.map(ref => ({ ref })),
+        config,
+        critMap,
+        separate: !!config.separate
+      });
 
-    // Create simple chat message
-    await this.createManualMessage(actor, item, targetRefs, result);
+      // Create simple chat message
+      await this.createManualMessage(actor, item, targetRefs, rollResult);
 
-    return result;
+      // Return standardized Result object
+      return {
+        ok: true,
+        type: 'damage',
+        data: {
+          totals: rollResult.perTargetTotals,
+          types: rollResult.perTargetTypes,
+          rollCount: rollResult.rolls?.length || 0
+        },
+        errors: [],
+        warnings: [],
+        meta: {
+          duration: Date.now() - startTime,
+          actorId: actor.id,
+          itemId: item.id,
+          targetCount: targetRefs.length
+        },
+        rolls: rollResult.rolls || [],
+        effects: []
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        type: 'damage',
+        data: null,
+        errors: [error.message || 'Unknown error during damage execution'],
+        warnings: [],
+        meta: {
+          duration: Date.now() - startTime,
+          actorId: actor.id,
+          itemId: item.id
+        },
+        rolls: [],
+        effects: []
+      };
+    }
   }
 
   /**

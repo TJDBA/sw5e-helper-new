@@ -10,31 +10,61 @@ export class ApplyAction {
   /**
    * Validate apply context
    * @param {object} context - Apply context
-   * @returns {void}
+   * @returns {{ok: boolean, errors: string[], warnings: string[]}} Validation result
    */
   static validate(context = {}) {
+    const errors = [];
+    const warnings = [];
+
     if (!context.targetIds || context.targetIds.length === 0) {
-      throw new Error("No targets provided for apply action");
+      errors.push("No targets provided for apply action");
     }
     
-    if (!context.config?.damage) {
-      throw new Error("No damage data provided for apply action");
+    if (context.config?.damage === undefined || context.config?.damage === null) {
+      errors.push("No damage data provided for apply action");
+    } else if (typeof context.config.damage !== 'number' || context.config.damage < 0) {
+      errors.push("Damage must be a non-negative number");
     }
+
+    // Validate mode if provided
+    const validModes = ['full', 'half', 'none'];
+    if (context.config?.mode && !validModes.includes(context.config.mode)) {
+      warnings.push(`Unknown damage mode '${context.config.mode}', defaulting to 'full'`);
+    }
+
+    // Validate targets exist
+    if (context.targetIds?.length > 0) {
+      let missingTargets = 0;
+      for (const targetId of context.targetIds) {
+        if (!this.getActorFromTargetId(targetId)) {
+          missingTargets++;
+        }
+      }
+      if (missingTargets > 0) {
+        warnings.push(`${missingTargets} targets not found or invalid`);
+      }
+    }
+
+    return {
+      ok: errors.length === 0,
+      errors,
+      warnings
+    };
   }
 
   /**
    * Check permissions for apply action
    * @param {object} context - Apply context
-   * @returns {void}
+   * @returns {{ok: boolean, reason?: string}} Permission result
    */
   static checkPermission(context = {}) {
     // GM can always apply damage
     if (game.user?.isGM) {
-      return;
+      return { ok: true };
     }
     
     // Check if user has permission to modify target actors
-    for (const targetId of context.targetIds) {
+    for (const targetId of context.targetIds || []) {
       const actor = this.getActorFromTargetId(targetId);
       if (!actor) continue;
       
@@ -42,9 +72,14 @@ export class ApplyAction {
       const required = CONST.DOCUMENT_PERMISSION_LEVELS?.OWNER ?? 3;
       
       if (ownership < required) {
-        throw new Error(`Insufficient permissions to apply damage to: ${actor.name}`);
+        return { 
+          ok: false, 
+          reason: `Insufficient permissions to apply damage to: ${actor.name}` 
+        };
       }
     }
+
+    return { ok: true };
   }
 
   /**
