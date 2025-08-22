@@ -10,7 +10,7 @@ export class StorageManager {
    * @returns {any} Setting value
    */
   static getSetting(key) {
-    return game.settings.get("sw5e-helper", key);
+    return game.settings.get("sw5e-helper-new", key);
   }
 
   /**
@@ -19,7 +19,7 @@ export class StorageManager {
    * @param {any} value - Setting value
    */
   static async setSetting(key, value) {
-    return game.settings.set("sw5e-helper", key, value);
+    return game.settings.set("sw5e-helper-new", key, value);
   }
 
   /**
@@ -27,7 +27,7 @@ export class StorageManager {
    */
   static registerSettings() {
     // Debug mode
-    game.settings.register("sw5e-helper", "debugMode", {
+    game.settings.register("sw5e-helper-new", "debugMode", {
       name: "Debug Mode",
       hint: "Enable debug logging and features",
       scope: "client",
@@ -37,7 +37,7 @@ export class StorageManager {
     });
 
     // Auto-apply damage
-    game.settings.register("sw5e-helper", "autoApplyDamage", {
+    game.settings.register("sw5e-helper-new", "autoApplyDamage", {
       name: "Auto-Apply Damage", 
       hint: "Automatically apply damage to actor HP when applying full damage",
       scope: "world",
@@ -47,7 +47,7 @@ export class StorageManager {
     });
 
     // Show DSN animations
-    game.settings.register("sw5e-helper", "showDiceAnimations", {
+    game.settings.register("sw5e-helper-new", "showDiceAnimations", {
       name: "Show Dice Animations",
       hint: "Show Dice So Nice animations for rolls",
       scope: "client", 
@@ -57,7 +57,7 @@ export class StorageManager {
     });
 
     // Default advantage mode
-    game.settings.register("sw5e-helper", "defaultAdvantage", {
+    game.settings.register("sw5e-helper-new", "defaultAdvantage", {
       name: "Default Advantage Mode",
       hint: "Default advantage/disadvantage mode for attack rolls",
       scope: "client",
@@ -72,7 +72,7 @@ export class StorageManager {
     });
 
     // Preset auto-cleanup
-    game.settings.register("sw5e-helper", "presetCleanupDays", {
+    game.settings.register("sw5e-helper-new", "presetCleanupDays", {
       name: "Preset Cleanup Days",
       hint: "Automatically remove presets older than this many days (0 = never)",
       scope: "world",
@@ -83,13 +83,33 @@ export class StorageManager {
     });
 
     // Card default expanded state
-    game.settings.register("sw5e-helper", "cardsDefaultExpanded", {
+    game.settings.register("sw5e-helper-new", "cardsDefaultExpanded", {
       name: "Cards Default Expanded",
       hint: "Chat cards start with all targets expanded by default",
       scope: "client",
       config: true, 
       type: Boolean,
       default: false
+    });
+
+    // Resume tokens (not visible in config)
+    game.settings.register("sw5e-helper-new", "resumeTokens", {
+      name: "Resume Tokens",
+      hint: "Storage for workflow resume tokens",
+      scope: "world",
+      config: false,
+      type: Object,
+      default: {}
+    });
+
+    // Migration version (not visible in config)
+    game.settings.register("sw5e-helper-new", "migrationVersion", {
+      name: "Migration Version",
+      hint: "Tracks the last migration version applied",
+      scope: "world",
+      config: false,
+      type: String,
+      default: "0.0.0"
     });
   }
 

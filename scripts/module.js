@@ -34,6 +34,7 @@ class SW5EHelper {
 
     try {
       // Validate requirements
+      console.log("SW5E Helper: Validating requirements...");
       const validation = validateRequirements();
       if (!validation.valid) {
         console.error("SW5E Helper: Requirements not met:", validation.issues);
@@ -42,27 +43,32 @@ class SW5EHelper {
       }
 
       // Register settings
+      console.log("SW5E Helper: Registering settings...");
       this.registerSettings();
 
       // Register templates
+      console.log("SW5E Helper: Registering templates...");
       await this.registerTemplates();
 
       // Initialize subsystems
+      console.log("SW5E Helper: Initializing subsystems...");
       await this.initializeSubsystems();
 
       // Install API
+      console.log("SW5E Helper: Installing API...");
       installAPI();
 
       // Mark as ready
       this.ready = true;
       
-      console.log("SW5E Helper: Initialization complete");
+      console.log("SW5E Helper: Initialization complete - API should now be available");
       
       // Fire ready hook
       Hooks.callAll("sw5eHelper.ready", this);
 
     } catch (error) {
       console.error("SW5E Helper: Initialization failed", error);
+      console.error("Stack trace:", error?.stack);
       ui.notifications.error("SW5E Helper: Initialization failed - see console for details");
     }
   }
@@ -143,6 +149,15 @@ class SW5EHelper {
   async initializeWorkflow() {
     // Initialize workflow orchestrator
     workflow.WorkflowOrchestrator.init();
+
+    // Initialize workflow coordinator
+    if (workflow.WorkflowCoordinator) {
+      const coordinator = new workflow.WorkflowCoordinator();
+      await coordinator.init();
+      
+      // Store coordinator instance for API access
+      this.coordinator = coordinator;
+    }
 
     // Initialize workflow hooks
     workflow.WorkflowHooks.init();
@@ -242,10 +257,8 @@ class SW5EHelper {
 // Create module instance
 const sw5eHelper = new SW5EHelper();
 
-// Make available globally for debugging
-if (isDebug()) {
-  globalThis.sw5eHelperModule = sw5eHelper;
-}
+// Make available globally for debugging and coordinator access
+globalThis.sw5eHelperModule = sw5eHelper;
 
 // Foundry hooks
 Hooks.once("init", () => sw5eHelper.init());
@@ -255,8 +268,8 @@ Hooks.once("ready", () => {
   }
 });
 
-// Handle hot reload in development
-if (module.hot) {
+// Handle hot reload in development (only if available)
+if (typeof module !== 'undefined' && module.hot) {
   module.hot.accept();
   module.hot.dispose(() => {
     sw5eHelper.shutdown();

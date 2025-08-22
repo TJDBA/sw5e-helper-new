@@ -5,9 +5,9 @@
 
 export const CONFIG = {
   module: {
-    id: "sw5e-helper",
-    name: "SW5E Helper",
-    version: "1.0.0"
+    id: "sw5e-helper-new",
+    name: "SW5E Helper New",
+    version: "0.2.1"
   },
   
   system: {
@@ -21,8 +21,16 @@ export const CONFIG = {
   },
   
   debug: {
-    enabled: false,
-    logLevel: "info" // error, warn, info, debug
+    enabled: true,
+    logLevel: "debug" // error, warn, info, debug, trace
+  },
+
+  coordinator: {
+    enabled: true,
+    maxSteps: 50,
+    defaultTimeout: 30000,
+    resumeTokenTTL: 24 * 60 * 60 * 1000, // 24 hours
+    maxParallelBranches: 10
   },
   
   defaults: {
@@ -93,15 +101,15 @@ export const CONFIG = {
   },
   
   templates: {
-    attack: "modules/sw5e-helper/templates/dialogs/attack-dialog.hbs",
-    damage: "modules/sw5e-helper/templates/dialogs/damage-dialog.hbs",
-    card: "modules/sw5e-helper/templates/cards/attack-card.hbs"
+    attack: "modules/sw5e-helper-new/templates/dialogs/attack-dialog.hbs",
+    damage: "modules/sw5e-helper-new/templates/dialogs/damage-dialog.hbs",
+    card: "modules/sw5e-helper-new/templates/cards/attack-card.hbs"
   },
   
   styles: [
-    "modules/sw5e-helper/styles/module.css",
-    "modules/sw5e-helper/styles/dialogs.css", 
-    "modules/sw5e-helper/styles/cards.css"
+    "modules/sw5e-helper-new/styles/module.css",
+    "modules/sw5e-helper-new/styles/dialogs.css", 
+    "modules/sw5e-helper-new/styles/cards.css"
   ],
   
   abilities: ["str", "dex", "con", "int", "wis", "cha"],
@@ -172,7 +180,7 @@ export function getConfig(path, fallback = null) {
  */
 export function isDebug() {
   return CONFIG.debug.enabled || 
-         game.settings?.get?.(CONFIG.module.id, "debugMode") === true;
+         game.settings?.get?.("sw5e-helper-new", "debugMode") === true;
 }
 
 /**
@@ -202,10 +210,11 @@ export function localize(key, data = {}) {
  */
 export function validateRequirements() {
   const issues = [];
+  const warnings = [];
   
-  // Check system
+  // Check system (warning only, not blocking)
   if (game.system.id !== CONFIG.system.required) {
-    issues.push(`Wrong game system. Expected ${CONFIG.system.required}, got ${game.system.id}`);
+    warnings.push(`Recommended system: ${CONFIG.system.required}, current: ${game.system.id}`);
   }
   
   // Check Foundry version
@@ -214,9 +223,15 @@ export function validateRequirements() {
     issues.push(`Foundry VTT version too old. Minimum ${CONFIG.foundry.minVersion}, current ${foundryVersion}`);
   }
   
+  // Log warnings
+  if (warnings.length > 0) {
+    console.warn("SW5E Helper: Compatibility warnings:", warnings);
+  }
+  
   return {
     valid: issues.length === 0,
-    issues
+    issues,
+    warnings
   };
 }
 

@@ -201,6 +201,106 @@ export class StateManager {
   }
 
   /**
+   * Store resume token for workflow
+   * @param {string} token - Resume token
+   * @param {object} data - Token data
+   * @returns {Promise<void>}
+   */
+  static async storeResumeToken(token, data) {
+    // Store in game settings for persistence across sessions
+    const tokens = game.settings?.get?.("sw5e-helper-new", "resumeTokens") || {};
+    tokens[token] = {
+      ...data,
+      stored: Date.now()
+    };
+    
+    // Keep only last 50 tokens to prevent storage bloat
+    const tokenEntries = Object.entries(tokens);
+    if (tokenEntries.length > 50) {
+      const sortedTokens = tokenEntries
+        .sort((a, b) => b[1].stored - a[1].stored)
+        .slice(0, 50);
+      const cleanTokens = Object.fromEntries(sortedTokens);
+      await game.settings?.set?.("sw5e-helper-new", "resumeTokens", cleanTokens);
+      return;
+    }
+    
+    await game.settings?.set?.("sw5e-helper-new", "resumeTokens", tokens);
+  }
+
+  /**
+   * Retrieve resume token data
+   * @param {string} token - Resume token
+   * @returns {Promise<object|null>} Token data
+   */
+  static async retrieveResumeToken(token) {
+    const tokens = game.settings?.get?.("sw5e-helper-new", "resumeTokens") || {};
+    return tokens[token] || null;
+  }
+
+  /**
+   * Clean up expired resume tokens
+   * @param {number} maxAge - Maximum age in milliseconds
+   * @returns {Promise<void>}
+   */
+  static async cleanupExpiredTokens(maxAge = 24 * 60 * 60 * 1000) {
+    const tokens = game.settings?.get?.("sw5e-helper-new", "resumeTokens") || {};
+    const now = Date.now();
+    
+    const validTokens = {};
+    for (const [token, data] of Object.entries(tokens)) {
+      if (data.expires > now && (now - data.stored) < maxAge) {
+        validTokens[token] = data;
+      }
+    }
+    
+    await game.settings?.set?.("sw5e-helper-new", "resumeTokens", validTokens);
+  }
+
+  /**
+   * Create workflow state tracking
+   * @param {string} workflowName - Workflow name
+   * @param {object} context - Execution context
+   * @returns {object} Workflow state
+   */
+  static createWorkflowState(workflowName, context) {
+    return {
+      kind: "workflow",
+      name: workflowName,
+      workflowId: context.workflowId,
+      actorId: context.actorId,
+      itemId: context.itemId,
+      targetIds: context.targetIds || [],
+      status: "running",
+      started: Date.now(),
+      currentStep: null,
+      results: {},
+      context: { ...context }
+    };
+  }
+
+  /**
+   * Update workflow state
+   * @param {string} workflowId - Workflow ID
+   * @param {string} stepId - Current step ID
+   * @param {object} result - Step result
+   */
+  static updateWorkflowState(workflowId, stepId, result) {
+    // This could be enhanced to persist workflow state
+    console.log(`SW5E Helper: Workflow ${workflowId} step ${stepId} completed`, result);
+  }
+
+  /**
+   * Get workflow state
+   * @param {string} workflowId - Workflow ID
+   * @returns {object|null} Workflow state
+   */
+  static getWorkflowState(workflowId) {
+    // Placeholder - could retrieve from persistent storage
+    return null;
+  }
+
+  /**
    * Get state from message flag
    * @param {ChatMessage} message - The chat message
    * @returns {object|null} The state object

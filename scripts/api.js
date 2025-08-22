@@ -4,6 +4,7 @@
  */
 
 import { WorkflowOrchestrator } from './workflow/orchestrator.js';
+import { WorkflowCoordinator } from './workflow/coordinator.js';
 import { CONFIG, isDebug } from './config.js';
 
 /**
@@ -103,6 +104,75 @@ export const API = {
   },
 
   /**
+   * Advanced Workflow Coordinator API
+   */
+
+  /**
+   * Define a workflow
+   * @param {string} name - Workflow name
+   * @param {object} graph - Workflow graph definition
+   */
+  defineWorkflow(name, graph) {
+    if (isDebug()) {
+      console.log("SW5E Helper API: defineWorkflow() called", { name, graph });
+    }
+    
+    const coordinator = globalThis.sw5eHelperModule?.coordinator;
+    if (!coordinator) {
+      throw new Error("Workflow coordinator not initialized");
+    }
+    
+    coordinator.defineWorkflow(name, graph);
+  },
+
+  /**
+   * Execute a workflow
+   * @param {string} name - Workflow name
+   * @param {object} context - Execution context
+   * @param {object} options - Execution options
+   * @returns {Promise<object>} Workflow result
+   */
+  async executeWorkflow(name, context = {}, options = {}) {
+    if (isDebug()) {
+      console.log("SW5E Helper API: executeWorkflow() called", { name, context, options });
+    }
+    
+    const coordinator = globalThis.sw5eHelperModule?.coordinator;
+    if (!coordinator) {
+      throw new Error("Workflow coordinator not initialized");
+    }
+    
+    return coordinator.execute(name, context, options);
+  },
+
+  /**
+   * List all registered workflows
+   * @returns {string[]} Workflow names
+   */
+  listWorkflows() {
+    const coordinator = globalThis.sw5eHelperModule?.coordinator;
+    if (!coordinator) {
+      return [];
+    }
+    
+    return coordinator.listWorkflows();
+  },
+
+  /**
+   * Get workflow definition
+   * @param {string} name - Workflow name
+   * @returns {object|null} Workflow graph
+   */
+  getWorkflow(name) {
+    const coordinator = globalThis.sw5eHelperModule?.coordinator;
+    if (!coordinator) {
+      return null;
+    }
+    
+    return coordinator.getWorkflow(name);
+  },
+
+  /**
    * Utility functions
    */
   utils: {
@@ -150,12 +220,15 @@ export const API = {
  * Install API on global scope
  */
 export function installAPI() {
-  if (globalThis.sw5eHelper) {
+  if (game.sw5eHelper) {
     console.warn("SW5E Helper: API already installed");
     return;
   }
 
-  // Install main API
+  // Install main API on game object (Foundry convention)
+  game.sw5eHelper = API;
+
+  // Also install on globalThis for backward compatibility
   globalThis.sw5eHelper = API;
 
   // Install convenient shortcuts
@@ -163,7 +236,7 @@ export function installAPI() {
   globalThis.sw5eDamage = API.openDamage.bind(API);
 
   if (isDebug()) {
-    console.log("SW5E Helper: API installed on global scope");
+    console.log("SW5E Helper: API installed on game.sw5eHelper and globalThis.sw5eHelper");
   }
 }
 
@@ -171,12 +244,13 @@ export function installAPI() {
  * Uninstall API from global scope
  */
 export function uninstallAPI() {
+  delete game.sw5eHelper;
   delete globalThis.sw5eHelper;
   delete globalThis.sw5eAttack;
   delete globalThis.sw5eDamage;
 
   if (isDebug()) {
-    console.log("SW5E Helper: API uninstalled from global scope");
+    console.log("SW5E Helper: API uninstalled from game and global scope");
   }
 }
 

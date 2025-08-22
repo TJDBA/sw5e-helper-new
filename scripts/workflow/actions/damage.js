@@ -10,6 +10,50 @@ import { DamageDialog } from '../../ui/dialogs/DamageDialog.js';
 import { CardRenderer } from '../../ui/cards/renderer.js';
 
 export class DamageAction {
+  /** @type {string} Action name identifier */
+  static name = "damage";
+
+  /**
+   * Validate damage context
+   * @param {object} context - Damage context
+   * @returns {void}
+   */
+  static validate(context = {}) {
+    if (!context.actorId) {
+      throw new Error("No actor provided for damage action");
+    }
+    
+    if (!context.itemId) {
+      throw new Error("No item provided for damage action");
+    }
+    
+    if (!context.config) {
+      throw new Error("No damage configuration provided");
+    }
+  }
+
+  /**
+   * Check permissions for damage action
+   * @param {object} context - Damage context  
+   * @returns {void}
+   */
+  static checkPermission(context = {}) {
+    const actor = game.actors?.get(context.actorId);
+    if (!actor) {
+      throw new Error("Actor not found for permission check");
+    }
+    
+    if (game.user?.isGM) {
+      return;
+    }
+    
+    const ownership = actor.ownership?.[game.user.id] ?? (actor.isOwner ? 3 : 0);
+    const required = CONST.DOCUMENT_PERMISSION_LEVELS?.OWNER ?? 3;
+    
+    if (ownership < required) {
+      throw new Error("Insufficient permissions to control this actor");
+    }
+  }
   /**
    * Roll quick damage without dialog
    * @param {object} state - Card state
@@ -37,6 +81,42 @@ export class DamageAction {
     }
 
     await this.updateCard(message, state);
+  }
+
+  /**
+   * Execute damage action (coordinator interface)
+   * @param {object} context - Execution context
+   * @returns {Promise<object>} Damage result
+   */
+  static async execute(context = {}) {
+    const { actorId, itemId, config = {}, targetIds = [] } = context;
+    
+    const actor = game.actors?.get(actorId);
+    const item = actor?.items?.get(itemId);
+    
+    if (!actor || !item) {
+      return {
+        ok: false,
+        type: 'damage',
+        errors: ['Actor or item not found'],
+        warnings: [],
+        meta: {}
+      };
+    }
+
+    // Convert targetIds to target refs for existing methods
+    const targetRefs = targetIds.map(id => {
+      if (id.includes(':')) return id; // Already in scene:token format
+      return `${canvas.scene?.id}:${id}`; // Convert token ID to scene:token format
+    });
+
+    // Use the existing executeManual method
+    return this.executeManual({
+      actor,
+      item,
+      config,
+      targetRefs
+    });
   }
 
   /**
@@ -411,6 +491,74 @@ export class DamageAction {
 
   static onPostDamageRoll(data) {
     console.log("SW5E Helper: Post-damage roll", data);
+  }
+
+  /**
+   * Compensate damage action by applying healing
+   * @param {object} context - Original context
+   * @param {object} result - Execution result
+   */
+  static async compensate(context, result) {
+    console.log("SW5E Helper: Compensating damage action", { context, result });
+    
+    // Apply healing equal to damage dealt
+    if (result.data?.damageApplied) {
+      for (const [targetRef, amount] of result.data.damageApplied.entries()) {
+        try {
+          const actor = this.getActorFromTargetRef(targetRef);
+          if (actor && amount > 0) {
+            await this.applyHealing(actor, amount);
+            console.log(`SW5E Helper: Applied ${amount} healing to ${actor.name}`);
+          }
+        } catch (error) {
+          console.warn(`SW5E Helper: Failed to compensate damage for ${targetRef}:`, error);
+        }
+      }
+    }
+  }
+
+  /**
+   * Generate idempotency key for damage action
+   * @param {object} context - Execution context
+   * @returns {string} Idempotency key
+   */
+  static idempotencyKey(context) {
+    const parts = [
+      'damage',
+      context.actorId,
+      context.itemId,
+      context.targetIds?.join(',') || '',
+      JSON.stringify(context.config || {})
+    ];
+    
+    return btoa(parts.join('|')).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+  }
+
+  /**
+   * Get actor from target reference
+   * @param {string} targetRef - Target reference (sceneId:tokenId)
+   * @returns {Actor|null} Actor instance
+   */
+  static getActorFromTargetRef(targetRef) {
+    const [sceneId, tokenId] = targetRef.split(':');
+    const scene = game.scenes?.get(sceneId);
+    const token = scene?.tokens?.get(tokenId);
+    return token?.actor || null;
+  }
+
+  /**
+   * Apply healing to actor
+   * @param {Actor} actor - Target actor
+   * @param {number} amount - Healing amount
+   */
+  static async applyHealing(actor, amount) {
+    const currentHp = actor.system?.attributes?.hp?.value || 0;
+    const maxHp = actor.system?.attributes?.hp?.max || 0;
+    const newHp = Math.min(currentHp + amount, maxHp);
+    
+    await actor.update({
+      "system.attributes.hp.value": newHp
+    });
   }
 }
 

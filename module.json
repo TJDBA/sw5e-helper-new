@@ -1,16 +1,16 @@
 {
-  "id": "sw5e-helper",
-  "title": "SW5E Helper",
+  "id": "sw5e-helper-new",
+  "title": "SW5E Helper New",
   "description": "Enhanced attack and damage dialogs with preset support for the SW5E system",
   "authors": [
     {
-      "name": "SW5E Helper Team"
+      "name": "TJDBA"
     }
   ],
-  "version": "1.0.0",
+  "version": "0.2.1",
   "compatibility": {
     "minimum": "11",
-    "verified": "12"
+    "verified": "11"
   },
   "esmodules": [
     "scripts/module.js"
@@ -27,7 +27,11 @@
       "path": "lang/en.json"
     }
   ],
-  "system": ["sw5e"],
+  "relationships":[
+    {
+      "system": "sw5e"
+    }
+  ],
   "url": "",
   "manifest": "",
   "download": ""

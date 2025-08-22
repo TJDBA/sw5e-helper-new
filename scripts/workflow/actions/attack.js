@@ -65,6 +65,8 @@ function createResult() {
 }
 
 export class AttackAction {
+  /** @type {string} Action name identifier */
+  static name = "attack";
   /**
    * Validate attack context
    * @param {object} context - Attack context
@@ -212,6 +214,35 @@ export class AttackAction {
       result.errors.push(err?.message || "Attack execution failed");
       return result;
     }
+  }
+
+  /**
+   * Compensate attack action - attacks are not reversible, log only
+   * @param {object} context - Original context
+   * @param {object} result - Execution result
+   */
+  static async compensate(context, result) {
+    log("Attack compensation called (non-reversible action)", { 
+      actorId: context.actorId, 
+      itemId: context.itemId 
+    });
+  }
+
+  /**
+   * Generate idempotency key for attack action
+   * @param {object} context - Execution context
+   * @returns {string} Idempotency key
+   */
+  static idempotencyKey(context) {
+    const parts = [
+      'attack',
+      context.actorId,
+      context.itemId,
+      context.targetIds?.join(',') || '',
+      JSON.stringify(context.config || {})
+    ];
+    
+    return btoa(parts.join('|')).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
   }
 
   /**

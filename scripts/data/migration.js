@@ -5,21 +5,26 @@
 
 export class MigrationManager {
   static currentVersion = "1.0.0";
-  static migrationKey = "sw5e-helper.migrationVersion";
+  static migrationKey = "migrationVersion";
 
   /**
    * Run migrations if needed
    */
   static async runMigrations() {
-    const lastVersion = game.settings.get("core", this.migrationKey) || "0.0.0";
+    try {
+      const lastVersion = game.settings.get("sw5e-helper-new", this.migrationKey) || "0.0.0";
     
-    if (this.needsMigration(lastVersion, this.currentVersion)) {
-      console.log(`SW5E Helper: Running migrations from ${lastVersion} to ${this.currentVersion}`);
-      
-      await this.executeMigrations(lastVersion);
-      
-      await game.settings.set("core", this.migrationKey, this.currentVersion);
-      console.log("SW5E Helper: Migrations complete");
+      if (this.needsMigration(lastVersion, this.currentVersion)) {
+        console.log(`SW5E Helper: Running migrations from ${lastVersion} to ${this.currentVersion}`);
+        
+        await this.executeMigrations(lastVersion);
+        
+        await game.settings.set("sw5e-helper-new", this.migrationKey, this.currentVersion);
+        console.log("SW5E Helper: Migrations complete");
+      }
+    } catch (error) {
+      console.warn("SW5E Helper: Migration failed:", error);
+      // Don't block initialization if migration fails
     }
   }
 

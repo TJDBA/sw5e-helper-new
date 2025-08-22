@@ -261,4 +261,25 @@ export class TokenResolver {
   }
 }
 
+/**
+ * CONVENIENCE FUNCTION FOR QUICK TESTING WORKFLOWS
+ * Resolve a token reference "sceneId:tokenId" or an object {sceneId, tokenId}
+ * into the Foundry TokenDocument and Actor.
+ * @param {string|{sceneId:string,tokenId:string}} ref - Token reference
+ * @returns {{scene:Scene|null, token:TokenDocument|null, actor:Actor|null}}
+ */
+export function resolveTokenRef(ref) {
+  let sceneId, tokenId;
+  if (typeof ref === "string") {
+    [sceneId, tokenId] = ref.split(":");
+  } else {
+    sceneId = ref?.sceneId;
+    tokenId = ref?.tokenId;
+  }
+  const scene = game.scenes?.get(sceneId) ?? canvas?.scene ?? null;
+  const token = scene?.tokens?.get?.(tokenId) ?? null;
+  const actor = token?.actor ?? null;
+  return { scene, token, actor };
+}
+
 export default TokenResolver;

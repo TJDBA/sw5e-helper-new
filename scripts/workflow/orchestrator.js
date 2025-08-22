@@ -32,6 +32,23 @@ export class WorkflowOrchestrator {
   }
   
   /**
+   * Get registered action handler
+   * @param {string} type - Action type
+   * @returns {object|null} Action handler
+   */
+  getAction(type) {
+    return this.actions.get(type) || null;
+  }
+  
+  /**
+   * List all registered actions
+   * @returns {string[]} Action type names
+   */
+  listActions() {
+    return Array.from(this.actions.keys());
+  }
+  
+  /**
    * Execute a single action with validation and permissions
    * @param {string} actionType - Type of action to execute
    * @param {object} context - Action context

@@ -3,6 +3,8 @@
  * Handles applying damage to actors
  */
 
+import { TokenResolver } from './resolver.js';
+
 export class DamageApplicator {
   /**
    * Apply damage to an actor
@@ -199,6 +201,40 @@ export class DamageApplicator {
       temp: Number(hp?.temp ?? 0),
       percentage: hp?.max ? Math.round((hp.value / hp.max) * 100) : 0
     };
+  }
+}
+
+/**
+ * CONVENIENCE FUNCTION FOR QUICK TESTING WORKFLOWS
+ * Apply damage to a token's actor using token reference.
+ * Integrates half-damage and leaves room for resistances.
+ * @param {string|{sceneId:string,tokenId:string}} ref - Token reference
+ * @param {number} amount - Damage amount
+ * @param {{half?:boolean}} opts - Damage options
+ * @returns {Promise<number>} Applied damage amount
+ */
+export async function applyDamageToToken(ref, amount, { half = false } = {}) {
+  try {
+    const resolved = TokenResolver.resolve(ref, { allowMissing: false });
+    const { actor } = resolved;
+    
+    if (!actor) return 0;
+    
+    let dmg = Number(amount) || 0;
+    if (half) dmg = Math.floor(dmg / 2);
+
+    // TODO: apply resistances/reductions from actor.system
+    const hp = actor.system?.attributes?.hp;
+    if (!hp) return 0;
+
+    const before = Number(hp.value ?? 0);
+    const after = Math.max(0, before - dmg);
+
+    await actor.update({ "system.attributes.hp.value": after });
+    return before - after;
+  } catch (error) {
+    console.error("SW5E Helper: applyDamageToToken failed", error);
+    return 0;
   }
 }
 
