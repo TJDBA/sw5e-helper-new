@@ -1,5 +1,6 @@
+{{!-- templates/dialogs/attack-dialog.hbs - Compact Attack Dialog --}}
 <form class="attack-dialog-form">
-  <div class="form-group">
+  <div class="form-row">
     <label>{{localize "SW5EHELPER.Weapon"}}</label>
     <select name="weaponId">
       {{#each weapons}}
@@ -8,9 +9,9 @@
     </select>
   </div>
 
-  <div class="form-group">
+  <div class="form-row">
     <label>{{localize "SW5EHELPER.Advantage"}}</label>
-    <div class="radio-group">
+    <div class="radio-row">
       <div class="radio-item">
         <input type="radio" name="adv" value="normal" id="adv-normal" {{#if (eq adv "normal")}}checked{{/if}}>
         <label for="adv-normal">{{localize "SW5EHELPER.Normal"}}</label>
@@ -26,38 +27,48 @@
     </div>
   </div>
 
-  <div class="checkbox-group">
-    <div class="checkbox-item">
-      <input type="checkbox" name="offhand" id="offhand" {{#if offhand}}checked{{/if}}>
-      <label for="offhand">{{localize "SW5EHELPER.Offhand"}}</label>
-    </div>
-    <div class="checkbox-item">
-      <input type="checkbox" name="separate" id="separate" {{#if separate}}checked{{/if}}>
-      <label for="separate">{{localize "SW5EHELPER.SeparateRolls"}}</label>
+  <div class="form-row">
+    <label>{{localize "SW5EHELPER.Options"}}</label>
+    <div class="checkbox-row">
+      <div class="checkbox-item">
+        <input type="checkbox" name="offhand" id="offhand" {{#if offhand}}checked{{/if}}>
+        <label for="offhand">{{localize "SW5EHELPER.Offhand"}}</label>
+      </div>
+      <div class="checkbox-item">
+        <input type="checkbox" name="separate" id="separate" {{#if separate}}checked{{/if}}>
+        <label for="separate">{{localize "SW5EHELPER.SeparateRolls"}}</label>
+      </div>
     </div>
   </div>
 
+  <div class="form-row">
+    <label>{{localize "SW5EHELPER.Bonus"}}</label>
+    <input type="text" name="atkMods" value="{{atkMods}}" placeholder="+2 or 1d4">
+  </div>
+
   {{#if showSmart}}
-  <div class="smart-section">
-    <div class="section-title">{{localize "SW5EHELPER.SmartWeapon"}}</div>
-    <div class="checkbox-item">
-      <input type="checkbox" name="smart" id="smart" {{#if smart}}checked{{/if}}>
-      <label for="smart">{{localize "SW5EHELPER.UseSmartOverride"}}</label>
+  <div class="compact-section">
+    <div class="section-header">{{localize "SW5EHELPER.SmartWeapon"}}</div>
+    <div class="checkbox-row" style="margin-left: 0; margin-bottom: 6px;">
+      <div class="checkbox-item">
+        <input type="checkbox" name="smart" id="smart" {{#if smart}}checked{{/if}}>
+        <label for="smart">{{localize "SW5EHELPER.UseSmartOverride"}}</label>
+      </div>
     </div>
-    <div class="form-group">
-      <label>{{localize "SW5EHELPER.AbilityModifier"}}</label>
-      <input type="number" name="smartAbility" value="{{smartAbility}}" step="1">
+    <div class="form-row" style="margin-bottom: 4px;">
+      <label style="flex: 0 0 60px;">{{localize "SW5EHELPER.Ability"}}</label>
+      <input type="number" name="smartAbility" value="{{smartAbility}}" step="1" style="margin-left: 0;">
     </div>
-    <div class="form-group">
-      <label>{{localize "SW5EHELPER.ProficiencyBonus"}}</label>
-      <input type="number" name="smartProf" value="{{smartProf}}" step="1">
+    <div class="form-row" style="margin-bottom: 0;">
+      <label style="flex: 0 0 60px;">{{localize "SW5EHELPER.Prof"}}</label>
+      <input type="number" name="smartProf" value="{{smartProf}}" step="1" style="margin-left: 0;">
     </div>
   </div>
   {{/if}}
 
-  <div class="save-section">
-    <div class="section-title">{{localize "SW5EHELPER.SavingThrow"}}</div>
-    <div class="checkbox-group">
+  <div class="compact-section">
+    <div class="section-header">{{localize "SW5EHELPER.SavingThrow"}}</div>
+    <div class="checkbox-row" style="margin-left: 0; margin-bottom: 6px;">
       <div class="checkbox-item">
         <input type="checkbox" name="saveOnHit" id="save-on-hit" {{#if saveOnHit}}checked{{/if}}>
         <label for="save-on-hit">{{localize "SW5EHELPER.SaveOnHit"}}</label>
@@ -67,23 +78,23 @@
         <label for="save-only">{{localize "SW5EHELPER.SaveOnly"}}</label>
       </div>
     </div>
-    <div class="form-group">
-      <label>{{localize "SW5EHELPER.SaveAbility"}}</label>
-      <select name="saveAbility">
+    <div class="form-row" style="margin-bottom: 4px;">
+      <label style="flex: 0 0 60px;">{{localize "SW5EHELPER.Ability"}}</label>
+      <select name="saveAbility" style="margin-left: 0;">
         <option value="">{{localize "SW5EHELPER.None"}}</option>
         {{#each abilities}}
         <option value="{{this}}" {{#if (eq ../saveAbility this)}}selected{{/if}}>{{capitalize this}}</option>
         {{/each}}
       </select>
     </div>
-    <div class="form-group">
-      <label>{{localize "SW5EHELPER.SaveDC"}}</label>
-      <input type="text" name="saveDcFormula" value="{{saveDcFormula}}" placeholder="15 or 8 + @prof + @cha.mod">
+    <div class="form-row" style="margin-bottom: 0;">
+      <label style="flex: 0 0 60px;">{{localize "SW5EHELPER.DC"}}</label>
+      <input type="text" name="saveDcFormula" value="{{saveDcFormula}}" placeholder="15" style="margin-left: 0;">
     </div>
   </div>
 
-  <div class="button-row">
-    <button type="button" data-action="cancel">{{localize "Cancel"}}</button>
-    <button type="button" data-action="roll">{{localize "SW5EHELPER.Roll"}}</button>
+  <div class="dialog-buttons">
+    <button type="button" class="dialog-button" data-action="cancel">{{localize "Cancel"}}</button>
+    <button type="button" class="dialog-button primary" data-action="roll">{{localize "SW5EHELPER.Roll"}}</button>
   </div>
 </form>

@@ -1,54 +1,44 @@
 /**
- * Attack Dialog Class
- * Handles attack configuration and validation
+ * Updated AttackDialog.js - Compact Attack Dialog
  */
-
 import { Helpers } from '../../core/utils/helpers.js';
+import { moduleBasePath } from "../../config.js";
+
 
 export class AttackDialog extends Application {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "modules/sw5e-helper/templates/dialogs/attack-dialog.hbs",
-      width: 520,
+      template: `${moduleBasePath()}/templates/dialogs/attack-dialog.hbs`,
+      width: 420,
       height: "auto",
-      title: Helpers.localize("SW5EHELPER.AttackTitle"),
+      title: "Attack Configuration",
       classes: ["sw5e-helper", "sw5e-helper-attack"],
-      resizable: true
+      resizable: false
     });
   }
 
   constructor(context, seed = {}) {
     super();
-    this.context = context; // { actor, weapons }
+    this.context = context;
     this._resolve = null;
     this._reject = null;
     this._done = false;
 
-    // Initialize state with defaults
     this.state = {
-      // Core attack options
       adv: "normal",
       weaponId: context?.weapons?.[0]?.id ?? "",
       ability: "",
       offhand: false,
       separate: false,
       atkMods: "",
-
-      // Smart weapon override
       smart: false,
-      smartAbility: "",
-      smartProf: "",
-
-      // Saving throw configuration
+      smartAbility: 0,
+      smartProf: 0,
       saveOnHit: false,
       saveAbility: "",
       saveDcFormula: "",
       saveOnly: false,
-
-      // Preset management
       presetName: "",
-
-      // Override with any seed data
       ...seed
     };
   }
@@ -59,10 +49,9 @@ export class AttackDialog extends Application {
     const selected = weaponsAll.find(w => w.id === this.state.weaponId) ?? weaponsAll[0];
     const item = selected?.item;
 
-    // Check if smart weapon features should be shown
     const showSmart = !!item?.system?.properties?.smr;
 
-    // Auto-populate save fields from item if available
+    // Auto-populate save fields from item
     const itemSave = this.getItemSaveData(item);
     if (itemSave && !this.state.saveAbility) {
       this.state.saveAbility = itemSave.ability;
@@ -86,10 +75,9 @@ export class AttackDialog extends Application {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // Form submission prevention
+    // Prevent form submission
     html.on("submit", ev => {
       ev.preventDefault();
-      ev.stopPropagation();
       return false;
     });
 
@@ -109,7 +97,7 @@ export class AttackDialog extends Application {
       }
     });
 
-    // Weapon change triggers re-render for smart/save updates
+    // Weapon change triggers re-render
     html.find('select[name="weaponId"]').on("change", () => {
       this.readForm();
       this.render(false);
@@ -138,9 +126,6 @@ export class AttackDialog extends Application {
     });
   }
 
-  /**
-   * Read form data into state
-   */
   readForm() {
     const form = this.element[0].querySelector("form");
     if (!form) return;
@@ -149,7 +134,6 @@ export class AttackDialog extends Application {
     const saveOnHitChecked = !!form.querySelector('input[name="saveOnHit"]')?.checked;
     const saveOnlyChecked = !!form.querySelector('input[name="saveOnly"]')?.checked;
 
-    // Update state from form
     this.state = {
       ...this.state,
       weaponId: formData.get("weaponId") || this.state.weaponId,
@@ -158,44 +142,32 @@ export class AttackDialog extends Application {
       offhand: !!form.querySelector('input[name="offhand"]')?.checked,
       separate: !!form.querySelector('input[name="separate"]')?.checked,
       atkMods: (formData.get("atkMods") || "").trim(),
-
-      // Smart weapon
       smart: !!form.querySelector('input[name="smart"]')?.checked,
-      smartAbility: (formData.get("smartAbility") || "").toString().trim(),
-      smartProf: (formData.get("smartProf") || "").toString().trim(),
-
-      // Save configuration with mutual exclusion
+      smartAbility: Number(formData.get("smartAbility") || 0),
+      smartProf: Number(formData.get("smartProf") || 0),
       saveOnHit: saveOnHitChecked && !saveOnlyChecked,
       saveOnly: saveOnlyChecked && !saveOnHitChecked,
       saveAbility: (formData.get("saveAbility") || "").toString().trim(),
       saveDcFormula: (formData.get("saveDcFormula") || "").toString().trim(),
-
       presetName: formData.get("presetName") || ""
     };
   }
 
-  /**
-   * Validate form data before submission
-   */
   validateForm() {
     const errors = [];
 
-    // Smart weapon validation
     if (this.state.smart) {
       const smartAbility = Number(this.state.smartAbility);
       const smartProf = Number(this.state.smartProf);
 
       if (!Number.isFinite(smartAbility) || !Number.isFinite(smartProf)) {
-        errors.push(Helpers.localize("SW5EHELPER.SmartValuesRequired"));
+        errors.push("Smart weapon requires valid ability and proficiency values");
       }
     }
 
     return errors;
   }
 
-  /**
-   * Handle roll button click
-   */
   handleRoll() {
     this.readForm();
     
@@ -205,7 +177,6 @@ export class AttackDialog extends Application {
       return;
     }
 
-    // Build result payload
     const result = {
       ...this.sanitizeState(),
       save: {
@@ -220,18 +191,12 @@ export class AttackDialog extends Application {
     this.close();
   }
 
-  /**
-   * Handle cancel button click
-   */
   handleCancel() {
     this._done = true;
     this._resolve?.(null);
     this.close();
   }
 
-  /**
-   * Clean up state for result
-   */
   sanitizeState() {
     return {
       adv: this.state.adv,
@@ -241,8 +206,8 @@ export class AttackDialog extends Application {
       separate: this.state.separate,
       atkMods: this.state.atkMods,
       smart: this.state.smart,
-      smartAbility: Number(this.state.smartAbility) || 0,
-      smartProf: Number(this.state.smartProf) || 0,
+      smartAbility: this.state.smartAbility,
+      smartProf: this.state.smartProf,
       saveOnHit: this.state.saveOnHit,
       saveOnly: this.state.saveOnly,
       saveAbility: this.state.saveAbility,
@@ -250,9 +215,6 @@ export class AttackDialog extends Application {
     };
   }
 
-  /**
-   * Get save data from item
-   */
   getItemSaveData(item) {
     try {
       const save = item?.system?.save;
@@ -267,9 +229,6 @@ export class AttackDialog extends Application {
     }
   }
 
-  /**
-   * Close handler - resolve with null if not already done
-   */
   async close(options) {
     if (!this._done) {
       this._resolve?.(null);
@@ -277,9 +236,6 @@ export class AttackDialog extends Application {
     return super.close(options);
   }
 
-  /**
-   * Promise wrapper for dialog interaction
-   */
   async wait() {
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
@@ -287,14 +243,9 @@ export class AttackDialog extends Application {
     });
   }
 
-  /**
-   * Static factory method
-   */
   static async prompt(context) {
     const dialog = new AttackDialog(context);
     dialog.render(true);
     return dialog.wait();
   }
 }
-
-export default AttackDialog;

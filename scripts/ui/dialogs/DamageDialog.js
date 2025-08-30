@@ -1,20 +1,18 @@
 /**
- * Damage Dialog Class
- * Handles damage configuration and validation
+ * Updated DamageDialog.js - Compact Damage Dialog
  */
-
-import { Helpers } from '../../core/utils/helpers.js';
 import { FormulaUtils } from '../../core/dice/formula.js';
+import { moduleBasePath } from "../../config.js";
 
 export class DamageDialog extends FormApplication {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      template: "modules/sw5e-helper/templates/dialogs/damage-dialog.hbs",
-      width: 560,
+      template: `${moduleBasePath()}/templates/dialogs/damage-dialog.hbs`,
+      width: 420,
       height: "auto",
-      title: Helpers.localize("SW5EHELPER.DamageTitle"),
+      title: "Damage Configuration",
       classes: ["sw5e-helper", "sw5e-helper-damage"],
-      resizable: true
+      resizable: false
     });
   }
 
@@ -29,23 +27,15 @@ export class DamageDialog extends FormApplication {
     this._resolve = null;
     this._reject = null;
 
-    // Initialize state
     this.state = {
-      // Core options
       weaponId: this.seed.weaponId || this.item?.id || (this.weapons?.[0]?.id ?? ""),
       ability: this.seed.ability || "",
       offhand: !!this.seed.offhand,
       separate: !!this.seed.separate,
       isCrit: !!this.seed.isCrit,
-
-      // Smart weapon
       smart: !!this.seed.smart,
       smartAbility: Number(this.seed.smartAbility ?? 0) || 0,
-
-      // Extra damage modifiers
       extraRows: this.seed.extraRows ?? [],
-
-      // Preset management
       presetName: ""
     };
   }
@@ -53,7 +43,6 @@ export class DamageDialog extends FormApplication {
   async getData() {
     const data = await super.getData();
 
-    // Resolve item if not provided (for manual mode)
     if (!this.item && this.weapons) {
       const selectedId = this.state.weaponId;
       this.item = this.actor?.items?.get(selectedId) ?? null;
@@ -63,7 +52,6 @@ export class DamageDialog extends FormApplication {
       throw new Error("DamageDialog requires a valid weapon item");
     }
 
-    // Get weapon damage information
     const weaponDamage = this.getWeaponDamageInfo();
     const showSmart = !!this.item.system?.properties?.smr;
     const weaponLocked = this.scope?.type === "card" || this.scope?.type === "row";
@@ -92,14 +80,13 @@ export class DamageDialog extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // Form submission prevention
+    // Prevent form submission
     html.on("submit", ev => {
       ev.preventDefault();
-      ev.stopPropagation();
       return false;
     });
 
-    // Weapon change (manual mode only)
+    // Weapon change
     html.find('select[name="weaponId"]').on("change", () => {
       this.readForm();
       if (this.scope?.type === "manual" && this.state.weaponId) {
@@ -140,9 +127,6 @@ export class DamageDialog extends FormApplication {
     });
   }
 
-  /**
-   * Read form data into state
-   */
   readForm() {
     const form = this.element[0].querySelector("form");
     if (!form) return;
@@ -151,8 +135,8 @@ export class DamageDialog extends FormApplication {
 
     // Read extra damage rows
     const extraRows = [];
-    form.querySelectorAll(".modrow").forEach(row => {
-      const id = row.dataset.id;
+    form.querySelectorAll(".extra-row").forEach(row => {
+      const id = row.dataset.id || Helpers.uuid();
       extraRows.push({
         id,
         formula: row.querySelector(".mod-formula")?.value?.trim() || "",
@@ -161,7 +145,6 @@ export class DamageDialog extends FormApplication {
       });
     });
 
-    // Update state
     this.state = {
       ...this.state,
       weaponId: (formData.get("weaponId") || this.state.weaponId).toString(),
@@ -171,13 +154,10 @@ export class DamageDialog extends FormApplication {
       smartAbility: Number(formData.get("smartAbility") ?? 0) || 0,
       separate: !!form.querySelector('input[name="separate"]')?.checked,
       isCrit: !!form.querySelector('input[name="isCrit"]')?.checked,
-      extraRows
+      extraRows: extraRows.filter(row => row.formula.trim())
     };
   }
 
-  /**
-   * Add a new extra damage row
-   */
   addExtraDamageRow() {
     const id = Helpers.uuid();
     this.state.extraRows = [
@@ -187,11 +167,8 @@ export class DamageDialog extends FormApplication {
     this.render(false);
   }
 
-  /**
-   * Remove an extra damage row
-   */
   removeExtraDamageRow(event) {
-    const row = event.currentTarget.closest(".modrow");
+    const row = event.currentTarget.closest(".extra-row");
     const id = row?.dataset?.id;
     if (!id) return;
 
@@ -200,9 +177,6 @@ export class DamageDialog extends FormApplication {
     this.render(false);
   }
 
-  /**
-   * Get weapon damage information
-   */
   getWeaponDamageInfo() {
     const sys = this.item.system ?? {};
     const parts = Array.isArray(sys.damage?.parts) ? sys.damage.parts : [];
@@ -225,9 +199,6 @@ export class DamageDialog extends FormApplication {
     };
   }
 
-  /**
-   * Handle roll button click
-   */
   async handleRoll() {
     this.readForm();
     
@@ -242,17 +213,11 @@ export class DamageDialog extends FormApplication {
     this.close();
   }
 
-  /**
-   * Handle cancel button click  
-   */
   handleCancel() {
     this._reject?.("cancel");
     this.close();
   }
 
-  /**
-   * Validate form data
-   */
   validateForm() {
     const errors = [];
 
@@ -266,9 +231,6 @@ export class DamageDialog extends FormApplication {
     return errors;
   }
 
-  /**
-   * Clean up state for result
-   */
   sanitizeState() {
     return {
       weaponId: this.state.weaponId,
@@ -282,17 +244,10 @@ export class DamageDialog extends FormApplication {
     };
   }
 
-  /**
-   * Close handler
-   */
   async close(options) {
-    // Don't auto-reject if already resolved
     return super.close(options);
   }
 
-  /**
-   * Promise wrapper for dialog interaction
-   */
   async wait() {
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
@@ -300,21 +255,9 @@ export class DamageDialog extends FormApplication {
     });
   }
 
-  /**
-   * Static factory methods
-   */
   static async prompt(options) {
     const dialog = new DamageDialog(options);
     dialog.render(true);
     return dialog.wait();
   }
 }
-
-/**
- * Convenience function for opening damage dialog
- */
-export async function openDamageDialog(options) {
-  return DamageDialog.prompt(options);
-}
-
-export default DamageDialog;

@@ -1,32 +1,51 @@
-/* SW5E Helper - Chat Card Styles */
-
+/* styles/cards.css - Chat Card Styles */
 .sw5e-helper-card {
+  .card-header {
+    background: linear-gradient(135deg, #444 0%, #333 100%);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-border-light, #555);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .weapon-banner {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    flex: 1;
   }
 
   .weapon-icon {
     width: 24px;
     height: 24px;
-    border-radius: 3px;
-    border: 1px solid var(--color-border-light);
+    border-radius: 4px;
+    border: 1px solid var(--color-border-light, #555);
+    background: var(--color-bg-alt, #333);
   }
 
   .weapon-title {
     flex: 1;
-    font-weight: bold;
   }
 
-  .card-damage-controls {
+  .weapon-title .name {
+    font-weight: bold;
+    font-size: 14px;
+    color: var(--color-text-header, #fff);
+  }
+
+  .card-controls {
+    background: var(--color-bg-alt, #222);
+    padding: 6px 12px;
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
-    padding: 4px 0;
-    border-bottom: 1px solid var(--color-border-light);
+    border-bottom: 1px solid var(--color-border-light, #444);
+  }
+
+  .damage-controls {
+    display: flex;
+    gap: 4px;
   }
 
   .gm-toolbar {
@@ -35,143 +54,222 @@
     margin-left: auto;
   }
 
+  .toggle-all-btn {
+    margin-left: auto;
+  }
+
   .target-separator {
-    margin: 8px 0;
-    border: none;
-    border-top: 1px solid var(--color-border-light);
+    display: none; /* Remove redundant separator */
+  }
+
+  .target-rows {
+    padding: 0;
   }
 
   .target-row {
-    border: 1px solid var(--color-border-light);
-    border-radius: 4px;
-    margin: 2px 0;
+    border-bottom: 1px solid var(--color-border-light, #333);
+    background: var(--color-bg-option, #2a2a2a);
+    transition: background 0.2s;
+  }
 
-    &.missing {
-      opacity: 0.6;
-      background: var(--color-bg-disabled);
-    }
+  .target-row:nth-child(even) {
+    background: var(--color-bg-alt, #252525);
+  }
 
-    &.even {
-      background: var(--color-bg-option);
-    }
+  .target-row:last-child {
+    border-bottom: none;
+  }
 
-    &.odd {
-      background: var(--color-bg-alt);
-    }
+  .target-row.missing {
+    opacity: 0.6;
+    background: var(--color-bg-disabled, #1a1a1a);
+  }
 
-    summary {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 8px;
-      cursor: pointer;
-      list-style: none;
-    }
+  .summary-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
 
-    summary::-webkit-details-marker {
-      display: none;
-    }
+  .summary-row::-webkit-details-marker {
+    display: none;
+  }
 
-    .expand-arrow {
-      transition: transform 0.2s;
-    }
+  .expand-arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+    color: var(--color-text-light, #aaa);
+    flex: 0 0 12px;
+  }
 
-    &[open] .expand-arrow {
-      transform: rotate(90deg);
-    }
+  .target-row[open] .expand-arrow {
+    transform: rotate(90deg);
+  }
 
-    .portrait {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: 1px solid var(--color-border-light);
-    }
+  .portrait {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border-light, #555);
+    background: var(--color-bg-alt, #333);
+    flex-shrink: 0;
+  }
 
-    .tname {
-      flex: 1;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: underline;
-    }
+  .tname {
+    flex: 1;
+    font-weight: bold;
+    font-size: 12px;
+    color: var(--color-text-primary, #fff);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.2s;
+  }
 
-    .attack-total,
-    .damage-summary,
-    .save-summary {
-      font-family: var(--font-mono);
-    }
+  .tname:hover {
+    text-decoration-color: var(--color-accent, #00ff88);
+  }
 
-    .status-icon {
-      font-size: 14px;
-    }
+  .attack-total,
+  .damage-summary,
+  .save-summary {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 12px;
+    color: var(--color-text-primary, #fff);
+  }
 
-    .status-hit { color: #00aa00; }
-    .status-miss { color: #cc0000; }
-    .status-crit { color: #ff6600; }
-    .status-fumble { color: #660000; }
-    .status-saveonly { color: #0066cc; }
-    .status-pending { color: #888888; }
+  .status-icon {
+    font-size: 10px;
+    margin-left: 4px;
+  }
 
-    .row-actions {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-left: auto;
-    }
+  .status-hit { color: #00aa44; }
+  .status-miss { color: #cc4444; }
+  .status-crit { color: #ff6600; }
+  .status-fumble { color: #aa2222; }
+  .status-saveonly { color: #0066cc; }
+  .status-pending { color: #888888; }
 
-    .missing {
-      color: #cc0000;
-      font-style: italic;
-    }
+  .row-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
 
-    .row-body {
-      padding: 8px;
-      border-top: 1px solid var(--color-border-light);
-      background: var(--color-bg-option);
-    }
+  .row-actions.applied {
+    color: var(--color-success, #00aa44);
+    font-size: 11px;
+  }
 
-    .save-line,
-    .damage-line {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 4px 0;
-    }
+  .missing {
+    color: #cc4444;
+    font-style: italic;
+    font-size: 10px;
+  }
 
-    .save-dc {
-      font-weight: bold;
-      cursor: help;
-    }
+  .row-body {
+    padding: 8px 12px;
+    background: var(--color-bg-darker, #1f1f1f);
+    border-top: 1px solid var(--color-border-light, #333);
+  }
 
-    .save-result {
-      font-family: var(--font-mono);
-      font-weight: bold;
-    }
+  .save-line,
+  .damage-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
 
-    .applied-tag {
-      color: #00aa00;
-      font-weight: bold;
-      margin-left: 8px;
-    }
+  .save-line:last-child,
+  .damage-line:last-child {
+    margin-bottom: 0;
+  }
 
-    .dmg-val {
-      font-family: var(--font-mono);
-      font-weight: bold;
-    }
+  .save-dc {
+    font-weight: bold;
+    cursor: help;
+    color: var(--color-accent, #00ff88);
+  }
 
-    .icons {
-      display: flex;
-      gap: 2px;
-    }
+  .save-result {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-weight: bold;
+    font-size: 12px;
+  }
+
+  .applied-tag {
+    color: var(--color-success, #00aa44);
+    font-weight: bold;
+    font-size: 10px;
+    margin-left: 8px;
+  }
+
+  .dmg-val {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-weight: bold;
+    color: var(--color-warning, #ffaa00);
+  }
+
+  .icons {
+    display: flex;
+    gap: 2px;
   }
 
   .info-icon {
     cursor: help;
-    color: var(--color-text-light);
+    color: var(--color-text-light, #aaa);
     font-size: 12px;
     margin-left: 4px;
+    transition: color 0.2s;
   }
 
   .info-icon:hover {
-    color: var(--color-text-primary);
+    color: var(--color-accent, #00ff88);
   }
+}
+
+/* Quick action buttons */
+.sw5e-helper .quick-btn {
+  padding: 4px 8px;
+  background: var(--color-accent, #00aa44);
+  border: none;
+  border-radius: 3px;
+  color: white;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.sw5e-helper .quick-btn:hover {
+  background: var(--color-accent-hover, #00cc55);
+}
+
+.sw5e-helper .quick-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* GM toolbar */
+.sw5e-helper .gm-btn {
+  padding: 2px 6px;
+  background: var(--color-bg-option, #444);
+  border: 1px solid var(--color-border-light, #555);
+  border-radius: 3px;
+  color: var(--color-text-primary, #fff);
+  cursor: pointer;
+  font-size: 10px;
+  transition: background 0.2s;
+}
+
+.sw5e-helper .gm-btn:hover {
+  background: var(--color-button-bg-hover, #555);
 }

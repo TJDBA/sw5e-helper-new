@@ -158,6 +158,15 @@ export const CONFIG = {
 };
 
 /**
+ * Get module base path
+ * @returns {string} Module base path
+ */
+export function moduleBasePath() {
+  const mod = game.modules.get(CONFIG.module.id);
+  return mod?.esmodules?.length ? mod.esmodules[0].replace(/\/scripts\/.*$/, "") : `modules/${CONFIG.module.id}`;
+};
+
+/**
  * Get configuration value with dot notation
  * @param {string} path - Config path (e.g., "ui.dialog.attack.width")
  * @param {any} fallback - Fallback value

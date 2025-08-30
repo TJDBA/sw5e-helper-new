@@ -290,18 +290,12 @@ export function installAPI() {
   // Also install on globalThis for backward compatibility
   globalThis.sw5eHelper = API;
 
-  // Install API on the module instance so it can be accessed via game.modules.get("sw5e-helper-new").api
-  const moduleInstance = globalThis.sw5eHelperModule;
-  if (moduleInstance) {
-    moduleInstance.api = API;
-  }
-
   // Install convenient shortcuts
   globalThis.sw5eAttack = API.openAttack.bind(API);
   globalThis.sw5eDamage = API.openDamage.bind(API);
 
   if (isDebug()) {
-    console.log("SW5E Helper: API installed on game.sw5eHelper, globalThis.sw5eHelper, and module instance");
+    console.log("SW5E Helper: API installed on game.sw5eHelper and globalThis.sw5eHelper");
   }
 }
 
@@ -314,14 +308,8 @@ export function uninstallAPI() {
   delete globalThis.sw5eAttack;
   delete globalThis.sw5eDamage;
 
-  // Remove API from module instance
-  const moduleInstance = globalThis.sw5eHelperModule;
-  if (moduleInstance) {
-    delete moduleInstance.api;
-  }
-
   if (isDebug()) {
-    console.log("SW5E Helper: API uninstalled from game, global scope, and module instance");
+    console.log("SW5E Helper: API uninstalled from game and global scope");
   }
 }
 

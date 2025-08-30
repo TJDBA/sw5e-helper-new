@@ -81,11 +81,7 @@ class SW5EHelper {
       console.log("SW5E Helper: Registering settings");
     }
 
-    try {
-      data.StorageManager.registerSettings();
-    } catch (error) {
-      console.error("SW5E Helper: Failed to register settings", error);
-    }
+    data.StorageManager.registerSettings();
   }
 
   /**

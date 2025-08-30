@@ -1,107 +1,233 @@
-/* SW5E Helper - Dialog Styles */
-
+/* styles/dialogs.css - Dialog Styles */
 .sw5e-helper-attack,
 .sw5e-helper-damage {
   .window-content {
-    padding: 10px;
+    padding: 12px;
+  }
+
+  .window-header {
+    background: linear-gradient(135deg, #444 0%, #333 100%);
   }
 
   form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
-  .form-group {
+  .form-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    margin-bottom: 6px;
+    min-height: 24px;
   }
 
-  .form-group label {
-    flex: 0 0 120px;
-    font-weight: bold;
+  .form-row label {
+    flex: 0 0 80px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-light, #ccc);
   }
 
-  .form-group select,
-  .form-group input[type="text"],
-  .form-group input[type="number"] {
+  .form-row select,
+  .form-row input[type="text"],
+  .form-row input[type="number"] {
     flex: 1;
+    background: var(--color-bg-input, #1a1a1a);
+    border: 1px solid var(--color-border-light, #555);
+    border-radius: 3px;
+    padding: 4px 6px;
+    color: var(--color-text-primary, #fff);
+    font-size: 12px;
+    height: 24px;
   }
 
-  .checkbox-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
+  .form-row select:focus,
+  .form-row input:focus {
+    outline: none;
+    border-color: var(--color-accent, #00ff88);
+    box-shadow: 0 0 0 1px var(--color-accent, #00ff88);
   }
 
-  .checkbox-item {
+  .radio-row {
     display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .radio-group {
-    display: flex;
-    gap: 15px;
+    gap: 12px;
+    margin-left: 88px;
   }
 
   .radio-item {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
+    font-size: 12px;
   }
 
-  .button-row {
+  .checkbox-row {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 15px;
+    gap: 16px;
+    margin-left: 88px;
+    flex-wrap: wrap;
   }
 
-  .smart-section,
-  .save-section {
-    border: 1px solid var(--color-border-light);
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .compact-section {
+    background: var(--color-bg-alt, #222);
+    border: 1px solid var(--color-border-light, #444);
     border-radius: 4px;
-    padding: 10px;
-    background: var(--color-bg-alt);
+    padding: 8px;
+    margin: 8px 0;
   }
 
-  .section-title {
+  .section-header {
+    font-size: 11px;
     font-weight: bold;
-    margin-bottom: 8px;
-    color: var(--color-text-header);
+    color: var(--color-accent, #00ff88);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: var(--color-border-light, #444);
+    margin: 10px 0;
+  }
+
+  .dialog-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border-light, #444);
+  }
+
+  .dialog-button {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border-light, #555);
+    border-radius: 4px;
+    background: var(--color-button-bg, #333);
+    color: var(--color-text-primary, #fff);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+
+  .dialog-button.primary {
+    background: var(--color-accent, #00aa44);
+    border-color: var(--color-accent, #00aa44);
+  }
+
+  .dialog-button:hover {
+    background: var(--color-button-bg-hover, #444);
+  }
+
+  .dialog-button.primary:hover {
+    background: var(--color-accent-hover, #00cc55);
+  }
+
+  .dialog-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
-/* Extra rows for damage dialog */
-.modrow {
+/* Extra damage rows */
+.extra-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.extra-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--color-bg-option, #2a2a2a);
+  border-radius: 3px;
+}
+
+.extra-row input {
+  flex: 1;
+  height: 20px;
+  font-size: 11px;
+  padding: 2px 4px;
+  background: var(--color-bg-input, #1a1a1a);
+  border: 1px solid var(--color-border-light, #555);
+  color: var(--color-text-primary, #fff);
+  border-radius: 2px;
+}
+
+.extra-row select {
+  flex: 0 0 80px;
+  height: 20px;
+  font-size: 11px;
+  padding: 2px;
+  background: var(--color-bg-input, #1a1a1a);
+  border: 1px solid var(--color-border-light, #555);
+  color: var(--color-text-primary, #fff);
+  border-radius: 2px;
+}
+
+.del-btn {
+  flex: 0 0 20px;
+  height: 20px;
+  border-radius: 3px;
+  background: #cc4444;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.del-btn:hover {
+  background: #ee5555;
+}
+
+/* Weapon damage display */
+.weapon-damage-section {
+  background: var(--color-bg-alt, #222);
+  border: 1px solid var(--color-border-light, #444);
+  border-radius: 4px;
+  padding: 8px;
+  margin: 8px 0;
+}
+
+.damage-part {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 0;
-  border-bottom: 1px solid var(--color-border-light);
+  margin-bottom: 4px;
+  font-size: 11px;
 }
 
-.modrow:last-child {
-  border-bottom: none;
+.damage-part:last-child {
+  margin-bottom: 0;
 }
 
-.mod-formula,
-.mod-type {
-  flex: 1;
+.damage-part .formula {
+  font-family: var(--font-mono, 'Courier New', monospace);
+  color: var(--color-accent, #00ff88);
 }
 
-.mod-incrit {
-  flex: 0 0 auto;
+.damage-part .type {
+  color: var(--color-text-light, #aaa);
+  font-style: italic;
 }
 
-.del-row-btn {
-  background: #cc0000;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  padding: 2px 6px;
-  cursor: pointer;
-  font-size: 12px;
+.brutal-info {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--color-border-light, #444);
+  font-size: 11px;
+  color: var(--color-warning, #ffaa00);
 }
