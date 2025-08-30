@@ -6,6 +6,9 @@
 import { getConfig } from '../../config.js';
 
 export class StateManager {
+  
+  static _ref(sceneId, tokenId) { return `${sceneId || canvas.scene?.id || ""}:${tokenId || ""}`; }
+  
   /**
    * Create initial attack state
    * @param {object} options - State creation options
@@ -61,24 +64,25 @@ export class StateManager {
       name,
       img,
       actorId,
-      missing = false
+      missing = false,
+      ac
     } = targetData;
 
+    const ref = this._ref(sceneId, tokenId);
     return {
       sceneId,
       tokenId,
       actorId,
-      name,
-      img,
-      missing,
-      summary: {
-        status: "pending",
-        keptDie: null,
-        attackTotal: null
-      },
-      attack: null,
-      damage: null,
-      save: null
+      ref,
+      name: name ?? game.scenes.get(sceneId)?.tokens.get(tokenId)?.name ?? "Target",
+      img: img ?? game.scenes.get(sceneId)?.tokens.get(tokenId)?.document?.texture?.src ?? "",
+      ac: ac ?? game.scenes.get(sceneId)?.tokens.get(tokenId)?.actor?.system?.attributes?.ac?.value ?? null,
+      ui: { expanded: false },
+      summary: { status: "pending" },     // Reference-style summary stub
+      attack: null,                       // { total, roll, parts? }
+      damage: null,                       // { total, parts: [{type, value}], note? }
+      save: null,                          // { ability, dc, result, success }
+      missing
     };
   }
 
@@ -422,6 +426,51 @@ export class StateManager {
 
     result.valid = result.errors.length === 0;
     return result;
+  }
+
+  /**
+   * Attach attack results per target in Reference format
+   * attackResults: Array of { sceneId, tokenId, total, roll }
+   */
+  static updateAttackResults(state, attackResults = []) {
+    const byRef = new Map(attackResults.map(r => [this._ref(r.sceneId, r.tokenId), r]));
+    for (const t of state.targets) {
+      const r = byRef.get(t.ref);
+      if (!r) continue;
+      t.attack = { total: r.total ?? null, roll: r.roll ?? null };
+      t.summary = { 
+        ...(t.summary||{}), 
+        status: r.total != null ? "rolled" : "pending",
+        attackTotal: r.total ?? null,
+        keptDie: r.kept ?? null
+      };
+    }
+  }
+  
+  /**
+   * Attach damage totals per target in Reference format
+   * damageResults: Array of { sceneId, tokenId, total, parts:[{type,value}] }
+   */
+  static updateDamageResults(state, damageResults = []) {
+    const byRef = new Map(damageResults.map(r => [this._ref(r.sceneId, r.tokenId), r]));
+    for (const t of state.targets) {
+      const r = byRef.get(t.ref);
+      if (!r) continue;
+      t.damage = { total: r.total ?? null, parts: Array.isArray(r.parts) ? r.parts : [] };
+    }
+  }
+
+  /**
+   * Optional: attach save data in Reference format
+   * saves: Array of { sceneId, tokenId, ability, dc, result, success }
+   */
+  static updateSaveResults(state, saves = []) {
+    const byRef = new Map(saves.map(r => [this._ref(r.sceneId, r.tokenId), r]));
+    for (const t of state.targets) {
+      const r = byRef.get(t.ref);
+      if (!r) continue;
+      t.save = { ability: r.ability, dc: r.dc, result: r.result, success: !!r.success };
+    }
   }
 }
 

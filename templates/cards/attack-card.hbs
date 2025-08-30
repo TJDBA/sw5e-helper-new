@@ -36,70 +36,29 @@
     </button>
   </div>
 
-  <div class="target-rows">
-    {{#each targets}}
-    <details class="target-row{{#if missing}} missing{{/if}}" data-target-ref="{{ref}}" {{#if ../expandedAll}}open{{/if}}>
-      <summary class="summary-row" data-action="toggle-details">
+  <div class="targets">
+    {{#each targets as |t|}}
+    <details class="target-row" data-target-ref="{{t.ref}}">
+      <summary class="row-summary" data-action="toggle-row">
         <span class="expand-arrow">▶</span>
-        <img class="portrait" src="{{img}}" alt="{{name}}" />
-        <span class="tname" data-action="{{#if canControl}}select-token{{else}}ping-token{{/if}}" data-target-ref="{{ref}}">{{name}}</span>
-        
-        {{#if ../saveOnly}}
-        <span class="save-summary">
-          {{#if saveAbility}}{{saveAbility}}{{else}}SAVE{{/if}} DC {{#if saveDC}}{{saveDC}}{{else}}—{{/if}}
-          {{#if saveResult}} | {{saveResult.total}} {{saveResult.icon}}{{/if}}
-        </span>
-        {{else}}
-        <span class="attack-total">{{attackDisplay}} <span class="status-icon {{statusClass}}" title="{{statusText}}">{{statusIcon}}</span></span>
-        <span class="damage-summary">{{damageDisplay}}</span>
-        {{/if}}
-        
-        <span class="row-actions{{#if damageApplied}} applied{{/if}}">
-          {{#if damageApplied}}
-          ✓ {{#if damageInfo}}<span class="info-icon" data-action="show-damage-formula" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.DamageFormulaTooltip"}}">ⓘ</span>{{/if}}
-          {{else if damageTotal}}
-          <a class="action-btn" data-action="apply-full" title="{{localize "SW5EHELPER.ApplyFull"}}" data-target-ref="{{ref}}">💯</a>
-          <a class="action-btn" data-action="apply-half" title="{{localize "SW5EHELPER.ApplyHalf"}}" data-target-ref="{{ref}}">½</a>
-          {{#if damageInfo}}<span class="info-icon" data-action="show-damage-formula" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.DamageFormulaTooltip"}}">ⓘ</span>{{/if}}
-          {{/if}}
-          {{#if missing}}<span class="missing">[{{localize "SW5EHELPER.Missing"}}]</span>{{/if}}
+        <span class="tgt-name">{{t.name}}</span>
+        <span class="tgt-ac">AC {{t.ac}}</span>
+        <span class="row-glance">
+          {{#if t.attackDisplay}}<span class="hit">🎯 {{t.attackDisplay}}</span>{{/if}}
+          {{#if t.damageTotal}}<span class="dmg">💥 {{t.damageTotal}}</span>{{/if}}
+          {{#if t.saveDC}}<span class="save">🛡️ {{t.saveAbility}} DC {{t.saveDC}}</span>{{/if}}
         </span>
       </summary>
-      
       <div class="row-body">
-        {{#if ../hasSave}}
-        {{#if showSave}}
-        <div class="save-line">
-          <span class="detail-label">🛡️ {{saveAbility}} | DC: 
-            <span class="save-dc" {{#if saveFormula}}title="{{saveFormula}}"{{/if}}>{{saveDC}}</span>
-          </span>
-          {{#if saveResult}}
-          <span class="save-result">{{saveResult.total}} {{saveResult.icon}}</span>
-          {{else}}
-          <button class="gm-btn" data-action="roll-save" data-target-ref="{{ref}}">{{localize "SW5EHELPER.RollSave"}}</button>
-          {{/if}}
-        </div>
-        {{/if}}
-        {{/if}}
-        
-        <div class="damage-line">
-          <span class="detail-label">💥 {{localize "SW5EHELPER.Damage"}}: <span class="dmg-val">{{#if damageTotal}}{{damageTotal}}{{else}}—{{/if}}</span></span>
-          {{#if damageApplied}}
-          <span class="applied-tag">[{{uppercase damageApplied}}]</span>
-          {{else if damageTotal}}
-          <div class="damage-controls">
-            <a class="action-btn" data-action="row-mod-damage" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.ModDamage"}}">🎲</a>
-            <a class="action-btn" data-action="apply-full" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.ApplyFull"}}">💯</a>
-            <a class="action-btn" data-action="apply-half" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.ApplyHalf"}}">½</a>
-            <a class="action-btn" data-action="apply-none" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.ApplyNone"}}">Ø</a>
-          </div>
-          {{/if}}
-          {{#if damageInfo}}
-          <span class="info-icon" data-action="show-damage-formula" data-target-ref="{{ref}}" title="{{localize "SW5EHELPER.DamageFormulaTooltip"}}">ⓘ</span>
-          {{/if}}
+        <div class="actions">
+          <a class="action-btn" data-action="apply-full" data-target-ref="{{t.ref}}">💯</a>
+          <a class="action-btn" data-action="apply-half" data-target-ref="{{t.ref}}">½</a>
+          <a class="action-btn" data-action="apply-none" data-target-ref="{{t.ref}}">Ø</a>
+          <a class="action-btn" data-action="row-mod-damage" data-target-ref="{{t.ref}}">🎲</a>
         </div>
       </div>
     </details>
     {{/each}}
   </div>
+
 </div>

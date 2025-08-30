@@ -439,7 +439,7 @@ try {
 $(document).on('click', '.sw5e-resume-workflow', async function(event) {
   const messageId = $(this).closest('.chat-message').data('message-id');
   const message = game.messages.get(messageId);
-  const resumeToken = message.getFlag('sw5e-helper', 'resumeToken');
+  const resumeToken = message.getFlag('sw5e-helper-new', 'resumeToken');
   
   if (resumeToken) {
     const result = await game.sw5eHelper.executeWorkflow('advancedAttackWorkflow', {}, {

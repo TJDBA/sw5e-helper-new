@@ -107,6 +107,51 @@ class SW5EHelper {
     } catch (error) {
       console.error("SW5E Helper: Failed to load templates", error);
     }
+
+    try {
+      await loadTemplates(templatePaths);
+      
+      // Verify templates loaded
+      if (isDebug()) {
+        console.log("SW5E Helper: Templates loaded successfully");
+        console.log("Available partials:", Object.keys(Handlebars.partials));
+      }
+      } catch (error) {
+        console.error("SW5E Helper: Failed to load templates", error);
+    }
+
+    try {
+      Handlebars.registerHelper('localize', function(key, options) {
+        return game.i18n?.localize?.(key) ?? key;
+      });
+    } catch (error) {
+      console.error("SW5E Helper: Failed to load templates - localize", error);
+    }
+      
+    try {
+      Handlebars.registerHelper('eq', function(a, b) {
+        return a === b;
+      });
+    } catch (error) {
+      console.error("SW5E Helper: Failed to load templates - function", error);
+    }
+    
+    try {  
+      Handlebars.registerHelper('capitalize', function(str) {
+        return String(str || '').charAt(0).toUpperCase() + String(str || '').slice(1);
+      });
+    } catch (error) {
+      console.error("SW5E Helper: Failed to load templates - capitalize", error);
+    }
+      
+    try {
+      Handlebars.registerHelper('uppercase', function(str) {
+        return String(str || '').toUpperCase();
+      });
+    } catch (error) {
+      console.error("SW5E Helper: Failed to load templates - uppercase", error);
+    }
+
   }
 
   /**

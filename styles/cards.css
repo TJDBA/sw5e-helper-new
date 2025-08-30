@@ -106,9 +106,8 @@
     flex: 0 0 12px;
   }
 
-  .target-row[open] .expand-arrow {
-    transform: rotate(90deg);
-  }
+  .sw5e-helper-card .target-row .expand-arrow { display:inline-block; transform:rotate(0deg); }
+  .sw5e-helper-card .target-row[open] .expand-arrow { transform:rotate(90deg); }
 
   .portrait {
     width: 20px;
@@ -175,7 +174,7 @@
 
   .row-body {
     padding: 8px 12px;
-    background: var(--color-bg-darker, #1f1f1f);
+    
     border-top: 1px solid var(--color-border-light, #333);
   }
 
@@ -272,4 +271,72 @@
 
 .sw5e-helper .gm-btn:hover {
   background: var(--color-button-bg-hover, #555);
+}
+
+/* Enhanced target row styles */
+.sw5e-helper-card .target-row {
+  color: #333;
+  border-bottom: 1px solid var(--color-border-light, #333);
+  background: var(--color-bg-option, #2a2a2a);
+  transition: background 0.2s;
+}
+
+.sw5e-helper-card .target-row:nth-child(even) {
+  color: #fff;
+  background: var(--color-bg-alt, #333);
+}
+
+
+.sw5e-helper-card .target-row[open] .expand-arrow {
+  transform: rotate(90deg);
+}
+
+/* Action button styles */
+.sw5e-helper .action-btn {
+  display: inline-block;
+  padding: 2px 4px;
+  margin: 0 1px;
+  border: 1px solid var(--color-border-light, #555);
+  border-radius: 2px;
+  background: var(--color-button-bg, #444);
+  color: var(--color-text-primary, #fff);
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 10px;
+  transition: background 0.2s;
+}
+
+.sw5e-helper .action-btn:hover {
+  background: var(--color-button-bg-hover, #555);
+  border-color: var(--color-border-dark, #666);
+}
+
+/* Summary row layout fixes */
+.sw5e-helper-card .summary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  min-height: 32px;
+}
+
+.sw5e-helper-card .summary-row::-webkit-details-marker {
+  display: none;
+}
+
+/* Ensure attack and damage info is visible */
+.sw5e-helper-card .attack-total,
+.sw5e-helper-card .damage-summary {
+  font-family: var(--font-mono, 'Courier New', monospace);
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--color-text-primary, #fff);
+  flex-shrink: 0;
+}
+
+.sw5e-helper-card .damage-summary {
+  color: var(--color-warning, #ffaa00);
 }
