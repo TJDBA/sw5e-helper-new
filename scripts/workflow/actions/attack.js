@@ -115,22 +115,40 @@ export class AttackAction {
       const formula = this.buildEnhancedAttackFormula(actor, item, config);
       const attackResult = await this.executeAttackRolls({ actor, item, config, targets, formula });
 
+      console.log("SW5E Helper: Attack targets before mapping:", targets);
       const state = StateManager.createAttackState({
         actor,
         item,
-        config,
-        targets: targets.map(t => ({
-          sceneId: t.scene?.id ?? canvas.scene?.id,
-          tokenId: t.id,
-          name: t.name,
-          img: t.document?.texture?.src,
-          actorId: t.actor?.id,
-          ac: t.actor?.system?.attributes?.ac?.value
-        }))
+        attackOptions: config,
+        targets: targets.map(t => {
+          console.log("SW5E Helper: Mapping target:", t);
+          console.log("SW5E Helper: Target properties:", {
+            scene: t.scene?.id,
+            document: t.document?.id,
+            id: t.id,
+            name: t.name,
+            actor: t.actor?.id
+          });
+          
+          // Map to the structure that StateManager.createTargetState expects
+          return {
+            sceneId: t.scene?.id ?? canvas.scene?.id,
+            tokenId: t.document?.id ?? t.id ?? t._id ?? t.tokenId,
+            name: t.name,
+            img: t.document?.texture?.src,
+            actorId: t.actor?.id,
+            ac: t.actor?.system?.attributes?.ac?.value
+          };
+        })
       });
+      
+      // Add attack formula to state for the info icon
+      state.attack = { formula };
+      console.log("SW5E Helper: Final state created:", state);
 
       if (!config.saveOnly && attackResult) {
         // Map per-target evaluations into state
+        console.log("SW5E Helper: attackResult.targets:", attackResult.targets);
         StateManager.updateAttackResults(state, attackResult.targets || []);
       } else if (config.saveOnly) {
         for (const target of state.targets) target.summary.status = "saveonly";
@@ -267,7 +285,7 @@ export class AttackAction {
     const evaluation = CheckEvaluator.evaluateAttack(roll, ac);
     return {
       sceneId: (target.scene?.id ?? canvas.scene?.id) ?? null, // added for state mapping
-      tokenId: target.id,
+      tokenId: target.document?.id ?? target.id ?? target._id ?? target.tokenId,
       name: target.name || "Unknown Target",
       ac,
       total: evaluation.total,
@@ -378,14 +396,23 @@ export class AttackAction {
   static async createAttackMessage(options) {
     const { actor, state } = options;
 
-    const html = await new AttackCardRenderer(state).render();
+    // Create the message first
     const msg = await ChatMessage.create({
-      content: html,
+      content: "Loading...", // Temporary content
       speaker: ChatMessage.getSpeaker({ actor }), // use the provided actor
       type: CONST.CHAT_MESSAGE_TYPES.OTHER
     });
-    // Use your active module id as the flag scope
+    
+    // Update the state with the message ID
+    state.messageId = msg.id;
+    
+    // Now render the card with the message ID
+    const html = await new AttackCardRenderer(state).render();
+    
+    // Update the message with the final content and set the flag
+    await msg.update({ content: html });
     await msg.setFlag('sw5e-helper-new', 'state', state);
+    
     return { message: msg, html };
   }
 

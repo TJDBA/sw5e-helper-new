@@ -46,11 +46,11 @@ export class AttackCardRenderer {
     const isGM = game.user?.isGM === true;
     const saveOnly = !!this.state.options?.saveOnly;
     
-    return {
+    const context = {
       messageId: this.state.messageId || "",
       weaponName: this.state.itemName || "Unknown Weapon",
       weaponImg: this.state.weaponImg || "",
-      attackInfo: this.state.attack?.info,
+      attackInfo: this.state.attack?.formula || this.state.attack?.info,
       saveOnly,
       isGM,
       hasSave: !!this.state.hasSave,
@@ -60,6 +60,9 @@ export class AttackCardRenderer {
       hideRollAllSaves: this.shouldHideRollAllSaves(),
       targets: this.buildTargetContexts()
     };
+    
+    console.log("SW5E Helper: Template context built:", context);
+    return context;
   }
   
   buildTargetContexts() {
@@ -69,7 +72,9 @@ export class AttackCardRenderer {
     console.log("SW5E Helper Debug: buildTargetContexts() called", { targets });  
     
     return targets.map((target, index) => {
+      console.log("SW5E Helper: Processing target:", target);
       const ref = `${target.sceneId}:${target.tokenId}`;
+      console.log("SW5E Helper: Built ref:", ref, "from sceneId:", target.sceneId, "tokenId:", target.tokenId);
       const summary = target.summary || {};
       const damage = target.damage || {};
       const save = target.save || {};
@@ -157,10 +162,13 @@ export class AttackCardRenderer {
     const targets = this.state.targets || [];
     const saveOnly = !!this.state.options?.saveOnly;
     
+    // For now, always show quick damage button unless it's save-only
+    if (saveOnly) return true;
+    
+    // Show if any target is eligible for damage
     return targets.every(t => {
-      const eligible = saveOnly || ["hit", "crit"].includes(String(t?.summary?.status));
-      if (!eligible || t.missing) return true;
-      return t?.damage?.total != null;
+      if (t.missing) return true; // Hide if target is missing
+      return t?.damage?.total != null; // Hide if target already has damage
     });
   }
   
@@ -168,10 +176,13 @@ export class AttackCardRenderer {
     const targets = this.state.targets || [];
     const saveOnly = !!this.state.options?.saveOnly;
     
+    // For now, always show mod damage button unless it's save-only
+    if (saveOnly) return true;
+    
+    // Show if any target is eligible for damage
     return targets.every(t => {
-      const eligible = saveOnly || ["hit", "crit"].includes(String(t?.summary?.status));
-      if (!eligible || t.missing) return true;
-      return t?.damage?.total != null;
+      if (t.missing) return true; // Hide if target is missing
+      return t?.damage?.total != null; // Hide if target already has damage
     });
   }
   

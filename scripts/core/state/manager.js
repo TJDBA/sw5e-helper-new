@@ -86,32 +86,7 @@ export class StateManager {
     };
   }
 
-  /**
-   * Update attack results on targets
-   * @param {object} state - Card state
-   * @param {Array} attackResults - Attack roll results
-   */
-  static updateAttackResults(state, attackResults) {
-    if (!attackResults?.targets) return;
 
-    for (const target of state.targets) {
-      const result = attackResults.targets.find(r => r.tokenId === target.tokenId);
-      
-      if (result) {
-        target.attack = {
-          kept: result.kept,
-          total: result.total,
-          status: result.status
-        };
-        
-        target.summary = {
-          keptDie: result.kept,
-          attackTotal: result.total,
-          status: result.status
-        };
-      }
-    }
-  }
 
   /**
    * Update damage results on targets
@@ -430,13 +405,31 @@ export class StateManager {
 
   /**
    * Attach attack results per target in Reference format
-   * attackResults: Array of { sceneId, tokenId, total, roll }
+   * attackResults: Array of { sceneId, tokenId, total, roll } OR { targets: [...] }
    */
   static updateAttackResults(state, attackResults = []) {
-    const byRef = new Map(attackResults.map(r => [this._ref(r.sceneId, r.tokenId), r]));
+    // Handle both array format and { targets: [...] } format
+    const results = Array.isArray(attackResults) ? attackResults : (attackResults.targets || []);
+    
+    console.log("SW5E Helper: updateAttackResults called with:", { attackResults, results });
+    console.log("SW5E Helper: State targets:", state.targets);
+    
+    const byRef = new Map(results.map(r => {
+      const ref = this._ref(r.sceneId, r.tokenId);
+      console.log("SW5E Helper: Creating ref:", { sceneId: r.sceneId, tokenId: r.tokenId, ref });
+      return [ref, r];
+    }));
+    
+    console.log("SW5E Helper: byRef Map:", byRef);
+    
     for (const t of state.targets) {
+      console.log("SW5E Helper: Processing target:", t);
       const r = byRef.get(t.ref);
-      if (!r) continue;
+      if (!r) {
+        console.log("SW5E Helper: No result found for target ref:", t.ref);
+        continue;
+      }
+      console.log("SW5E Helper: Found result for target:", r);
       t.attack = { total: r.total ?? null, roll: r.roll ?? null };
       t.summary = { 
         ...(t.summary||{}), 
