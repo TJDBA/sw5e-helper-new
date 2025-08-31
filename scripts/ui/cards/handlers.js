@@ -139,19 +139,15 @@ export class CardHandlers {
         return;
       }
       
-      // Execute quick damage
-      const result = await DamageAction.execute({
-        actorId: state.actorId,
-        itemId: state.itemId,
-        config: state.options || {},
-        targetIds: targets.map(t => CardHandlers.resolveTargetRef(t))
+      // Get the original attack message to update it
+      const originalMessage = state.messageId ? game.messages?.get(state.messageId) : null;
+      
+      // Use the proper damage action workflow to calculate damage and update the card
+      await DamageAction.openDamageDialog(state, targets, originalMessage, {
+        separate: !!state.options?.separate
       });
       
-      if (result.ok) {
-        ui.notifications?.info?.("Quick damage applied successfully");
-      } else {
-        ui.notifications?.warn?.(`Quick damage failed: ${result.errors.join(', ')}`);
-      }
+      ui.notifications?.info?.("Quick damage calculated and card updated");
       
     } catch (error) {
       console.error("SW5E Helper: Error executing quick damage:", error);
@@ -181,8 +177,48 @@ export class CardHandlers {
       // Get the original attack message to update it
       const originalMessage = state.messageId ? game.messages?.get(state.messageId) : null;
       
+      // Filter targets based on whether this is header mod damage or row mod damage
+      let filteredTargets;
+      if (targetRef) {
+        // Row mod damage: manual override for specific target
+        filteredTargets = [CardHandlers.resolveTargetRef(targetRef)];
+      } else {
+        // Header mod damage: only target hit/crit targets without existing damage
+        console.log("SW5E Helper: Filtering targets for header mod damage:", state.targets);
+        console.log("SW5E Helper: Target structure example:", JSON.stringify(state.targets[0], null, 2));
+        
+        filteredTargets = state.targets.filter(target => {
+          // Check multiple possible status locations
+          const status = target.summary?.status || target.status || target.attack?.status;
+          const damageTotal = target.damage?.total || target.damage || 0;
+          const isHitOrCrit = status === 'hit' || status === 'crit';
+          const hasNoDamage = damageTotal === 0;
+          
+          console.log("SW5E Helper: Target filter check:", {
+            target: target.name || target.tokenId,
+            status,
+            damageTotal,
+            isHitOrCrit,
+            hasNoDamage,
+            eligible: isHitOrCrit && hasNoDamage,
+            targetKeys: Object.keys(target),
+            summaryKeys: target.summary ? Object.keys(target.summary) : 'no summary',
+            damageKeys: target.damage ? Object.keys(target.damage) : 'no damage'
+          });
+          
+          return isHitOrCrit && hasNoDamage;
+        });
+        
+        console.log("SW5E Helper: Filtered targets:", filteredTargets);
+        
+        if (filteredTargets.length === 0) {
+          ui.notifications?.info?.("No eligible targets found for mod damage (all hit/crit targets already have damage assigned)");
+          return;
+        }
+      }
+      
       // Use the proper damage action workflow to open the dialog and execute damage
-      await DamageAction.openDamageDialog(state, state.targets, originalMessage, {
+      await DamageAction.openDamageDialog(state, filteredTargets, originalMessage, {
         targetRef,
         separate: !!state.options?.separate // Use the original attack's separate setting
       });
@@ -248,19 +284,35 @@ export class CardHandlers {
         return;
       }
       
-      // Execute full damage application to all targets
-      const result = await DamageAction.execute({
-        actor,
-        item,
-        config: { ...state.options, applyMode: 'full' },
-        targets: state.targets,
-        state
-      });
+      // Import the damage application function
+      const { applyDamageToToken } = await import('../../core/actors/damage.js');
       
-      if (result.ok) {
-        ui.notifications?.info?.("Full damage applied to all targets successfully");
+      let successCount = 0;
+      let totalTargets = 0;
+      
+      // Apply full damage to all targets that have calculated damage
+      for (const target of state.targets) {
+        const damageAmount = target.damage?.total || 0;
+        if (damageAmount > 0) {
+          totalTargets++;
+          const targetRef = `${target.sceneId}:${target.tokenId}`;
+          try {
+            const applied = await applyDamageToToken(targetRef, damageAmount);
+            if (applied > 0) {
+              successCount++;
+            }
+          } catch (error) {
+            console.warn(`Failed to apply damage to ${target.name || target.tokenId}:`, error);
+          }
+        }
+      }
+      
+      if (totalTargets === 0) {
+        ui.notifications?.warn?.("No targets have calculated damage to apply");
+      } else if (successCount === totalTargets) {
+        ui.notifications?.info?.(`Full damage applied successfully to all ${successCount} targets`);
       } else {
-        ui.notifications?.warn?.(`Damage application failed: ${result.errors.join(', ')}`);
+        ui.notifications?.warn?.(`Applied damage to ${successCount}/${totalTargets} targets`);
       }
       
     } catch (error) {
@@ -293,19 +345,53 @@ export class CardHandlers {
         return;
       }
       
-      // Execute damage application with the specified mode
-      const result = await DamageAction.execute({
-        actor,
-        item,
-        config: { ...state.options, applyMode: mode },
-        targets: [target],
-        state
+      // Import the damage application function
+      const { applyDamageToToken } = await import('../../core/actors/damage.js');
+      
+      // Find the target in the state to get the calculated damage
+      const stateTarget = state.targets.find(t => 
+        t.sceneId === target.sceneId && t.tokenId === target.tokenId
+      );
+      
+      console.log("SW5E Helper: Target row apply damage debug:", {
+        targetRef,
+        resolvedTarget: target,
+        stateTargets: state.targets.map(t => ({ sceneId: t.sceneId, tokenId: t.tokenId, damage: t.damage })),
+        foundStateTarget: stateTarget,
+        stateTargetDamage: stateTarget?.damage
       });
       
-      if (result.ok) {
-        ui.notifications?.info?.(`${mode} damage applied successfully`);
+      if (!stateTarget) {
+        ui.notifications?.warn?.("Could not find target in state");
+        return;
+      }
+      
+      // Get the damage amount from the state target's calculated damage
+      const damageAmount = stateTarget.damage?.total || 0;
+      
+      if (damageAmount <= 0) {
+        ui.notifications?.warn?.("No damage calculated for this target");
+        return;
+      }
+      
+      // Apply damage based on mode
+      let finalAmount = damageAmount;
+      if (mode === 'half') {
+        finalAmount = Math.floor(damageAmount / 2);
+      } else if (mode === 'none') {
+        finalAmount = 0;
+      }
+      
+      if (finalAmount > 0) {
+        const targetRef = `${target.sceneId}:${target.tokenId}`;
+        const applied = await applyDamageToToken(targetRef, finalAmount);
+        if (applied > 0) {
+          ui.notifications?.info?.(`${mode} damage (${finalAmount}) applied successfully to ${target.name || target.tokenId}`);
+        } else {
+          ui.notifications?.warn?.("Failed to apply damage to target");
+        }
       } else {
-        ui.notifications?.warn?.(`Damage application failed: ${result.errors.join(', ')}`);
+        ui.notifications?.info?.(`No damage applied (${mode} mode)`);
       }
       
     } catch (error) {

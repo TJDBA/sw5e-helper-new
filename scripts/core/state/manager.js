@@ -158,7 +158,7 @@ export class StateManager {
    * @returns {object|null} The state object
    */
   static getStateFromMessage(message) {
-    return message?.flags?.["sw5e-helper"]?.state ?? null;
+    return message?.flags?.["sw5e-helper-new"]?.state ?? null;
   }
 
   /**
@@ -169,7 +169,7 @@ export class StateManager {
    */
   static async updateMessage(message, state, rolls = []) {
     const payload = {
-      flags: { "sw5e-helper": { state } }
+      flags: { "sw5e-helper-new": { state } }
     };
 
     if (rolls.length) {

@@ -75,7 +75,7 @@ export class WorkflowHooks {
 
   static onDeleteChatMessage(message, options, userId) {
     // Clean up any message-specific data
-    if (message.flags?.["sw5e-helper"]) {
+    if (message.flags?.["sw5e-helper-new"]) {
       console.log("SW5E Helper: Chat message deleted", message.id);
     }
   }

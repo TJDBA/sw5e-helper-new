@@ -12,7 +12,7 @@ export class PresetManager {
    */
   static async listPresets(actor, type) {
     const key = this.getPresetKey(actor, type);
-    const presets = await actor.getFlag("sw5e-helper", key) || [];
+    const presets = await actor.getFlag("sw5e-helper-new", key) || [];
     return Array.isArray(presets) ? presets : [];
   }
 
@@ -45,7 +45,7 @@ export class PresetManager {
     filtered.push({ name, ...data, savedAt: Date.now() });
     
     const key = this.getPresetKey(actor, type);
-    await actor.setFlag("sw5e-helper", key, filtered);
+    await actor.setFlag("sw5e-helper-new", key, filtered);
   }
 
   /**
@@ -59,7 +59,7 @@ export class PresetManager {
     const filtered = presets.filter(p => p.name !== name);
     
     const key = this.getPresetKey(actor, type);
-    await actor.setFlag("sw5e-helper", key, filtered);
+    await actor.setFlag("sw5e-helper-new", key, filtered);
   }
 
   /**
@@ -70,7 +70,7 @@ export class PresetManager {
    */
   static async getLastUsed(actor, type) {
     const key = `lastUsed${type.charAt(0).toUpperCase() + type.slice(1)}`;
-    return await actor.getFlag("sw5e-helper", key) || null;
+    return await actor.getFlag("sw5e-helper-new", key) || null; 
   }
 
   /**
@@ -82,7 +82,7 @@ export class PresetManager {
   static async setLastUsed(actor, type, data) {
     const key = `lastUsed${type.charAt(0).toUpperCase() + type.slice(1)}`;
     const sanitized = this.sanitizeConfig(type, data);
-    await actor.setFlag("sw5e-helper", key, { ...sanitized, usedAt: Date.now() });
+    await actor.setFlag("sw5e-helper-new", key, { ...sanitized, usedAt: Date.now() });
   }
 
   /**
@@ -214,7 +214,7 @@ export class PresetManager {
 
     if (filtered.length !== presets.length) {
       const key = this.getPresetKey(actor, type);
-      await actor.setFlag("sw5e-helper", key, filtered);
+              await actor.setFlag("sw5e-helper-new", key, filtered);
       
       const removed = presets.length - filtered.length;
       console.log(`SW5E Helper: Cleaned up ${removed} old presets for ${actor.name}`);

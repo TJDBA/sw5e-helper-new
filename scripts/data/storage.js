@@ -123,7 +123,7 @@ export class StorageManager {
     const actor = game.actors?.get(actorId);
     if (!actor) return null;
     
-    return actor.getFlag("sw5e-helper", key);
+    return actor.getFlag("sw5e-helper-new", key);
   }
 
   /**
@@ -136,7 +136,7 @@ export class StorageManager {
     const actor = game.actors?.get(actorId);
     if (!actor) return;
     
-    return actor.setFlag("sw5e-helper", key, value);
+    return actor.setFlag("sw5e-helper-new", key, value);
   }
 
   /**
@@ -149,9 +149,9 @@ export class StorageManager {
     if (!actor) return;
     
     if (key) {
-      return actor.unsetFlag("sw5e-helper", key);
+      return actor.unsetFlag("sw5e-helper-new", key);
     } else {
-      return actor.unsetFlag("sw5e-helper");
+              return actor.unsetFlag("sw5e-helper-new");
     }
   }
 
@@ -161,7 +161,7 @@ export class StorageManager {
    * @returns {any} Global data
    */
   static getGlobalData(key) {
-    return game.settings.get("sw5e-helper", `global.${key}`);
+    return game.settings.get("sw5e-helper-new", `global.${key}`);
   }
 
   /**
@@ -170,7 +170,7 @@ export class StorageManager {
    * @param {any} value - Data value
    */
   static async setGlobalData(key, value) {
-    return game.settings.set("sw5e-helper", `global.${key}`, value);
+    return game.settings.set("sw5e-helper-new", `global.${key}`, value);
   }
 
   /**
@@ -220,7 +220,7 @@ export class StorageManager {
     const actor = game.actors?.get(actorId);
     if (!actor) return null;
     
-    const data = actor.flags?.["sw5e-helper"] ?? {};
+    const data = actor.flags?.["sw5e-helper-new"] ?? {};
     
     return {
       actorId,
@@ -240,11 +240,11 @@ export class StorageManager {
     if (!actor || !exportData?.data) return;
     
     // Clear existing data first
-    await actor.unsetFlag("sw5e-helper");
+            await actor.unsetFlag("sw5e-helper-new");
     
     // Import new data
     for (const [key, value] of Object.entries(exportData.data)) {
-      await actor.setFlag("sw5e-helper", key, value);
+              await actor.setFlag("sw5e-helper-new", key, value);
     }
     
     ui.notifications.info(`Imported data for ${actor.name}`);
@@ -263,7 +263,7 @@ export class StorageManager {
     };
 
     for (const actor of game.actors) {
-      const flags = actor.flags?.["sw5e-helper"];
+      const flags = actor.flags?.["sw5e-helper-new"];
       if (!flags) continue;
       
       stats.actors++;
@@ -298,7 +298,7 @@ export class StorageManager {
     let cleaned = 0;
 
     for (const actor of game.actors) {
-      const flags = actor.flags?.["sw5e-helper"];
+      const flags = actor.flags?.["sw5e-helper-new"];
       if (!flags) continue;
       
       const updates = {};
@@ -330,7 +330,7 @@ export class StorageManager {
 
       // Apply updates
       if (hasUpdates) {
-        await actor.update({ "flags.sw5e-helper": updates });
+        await actor.update({ "flags.sw5e-helper-new": updates });
       }
     }
 

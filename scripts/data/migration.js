@@ -82,11 +82,11 @@ export class MigrationManager {
     // Could migrate from old data format if it existed
     for (const actor of game.actors) {
       // Example: migrate old flag structure
-      const oldData = actor.getFlag("sw5e-helper", "oldPresets");
+              const oldData = actor.getFlag("sw5e-helper-new", "oldPresets");
       if (oldData) {
-        await actor.setFlag("sw5e-helper", "attackPresets", oldData.attacks || []);
-        await actor.setFlag("sw5e-helper", "damagePresets", oldData.damage || []);
-        await actor.unsetFlag("sw5e-helper", "oldPresets");
+        await actor.setFlag("sw5e-helper-new", "attackPresets", oldData.attacks || []);
+        await actor.setFlag("sw5e-helper-new", "damagePresets", oldData.damage || []);
+        await actor.unsetFlag("sw5e-helper-new", "oldPresets");
       }
     }
   }
@@ -99,7 +99,7 @@ export class MigrationManager {
     
     // Example: add new fields to existing presets
     for (const actor of game.actors) {
-      const attackPresets = actor.getFlag("sw5e-helper", "attackPresets") || [];
+              const attackPresets = actor.getFlag("sw5e-helper-new", "attackPresets") || [];
       const updatedAttackPresets = attackPresets.map(preset => ({
         ...preset,
         // Add new field with default value
@@ -108,7 +108,7 @@ export class MigrationManager {
       }));
       
       if (attackPresets.length > 0) {
-        await actor.setFlag("sw5e-helper", "attackPresets", updatedAttackPresets);
+        await actor.setFlag("sw5e-helper-new", "attackPresets", updatedAttackPresets);
       }
     }
   }
@@ -122,13 +122,13 @@ export class MigrationManager {
     // Example: major restructure for 1.0 release
     for (const actor of game.actors) {
       // Migrate settings structure
-      const flags = actor.flags?.["sw5e-helper"];
+      const flags = actor.flags?.["sw5e-helper-new"];
       if (!flags) continue;
       
       // Example: rename fields
       if (flags.attackBonus !== undefined) {
-        await actor.setFlag("sw5e-helper", "itemAttackBonus", flags.attackBonus);
-        await actor.unsetFlag("sw5e-helper", "attackBonus");
+        await actor.setFlag("sw5e-helper-new", "itemAttackBonus", flags.attackBonus);
+        await actor.unsetFlag("sw5e-helper-new", "attackBonus");
       }
     }
   }
@@ -145,7 +145,7 @@ export class MigrationManager {
     };
 
     for (const actor of game.actors) {
-      const flags = actor.flags?.["sw5e-helper"];
+      const flags = actor.flags?.["sw5e-helper-new"];
       if (flags) {
         backup.actors.push({
           id: actor.id,
@@ -194,11 +194,11 @@ export class MigrationManager {
       if (!actor) continue;
       
       // Clear existing flags
-      await actor.unsetFlag("sw5e-helper");
+      await actor.unsetFlag("sw5e-helper-new");
       
       // Restore flags
       for (const [key, value] of Object.entries(actorData.flags)) {
-        await actor.setFlag("sw5e-helper", key, value);
+        await actor.setFlag("sw5e-helper-new", key, value);
       }
       
       restored++;
@@ -215,7 +215,7 @@ export class MigrationManager {
     const issues = [];
 
     for (const actor of game.actors) {
-      const flags = actor.flags?.["sw5e-helper"];
+      const flags = actor.flags?.["sw5e-helper-new"];
       if (!flags) continue;
 
       // Check preset structure

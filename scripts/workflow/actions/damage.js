@@ -219,16 +219,17 @@ export class DamageAction {
       }
     }
 
-    // Execute damage roll
+    // Execute damage roll - use the original separate setting from options, not from dialog result
     const rollResult = await this.executeRoll({
       actor,
       item,
       targets,
       config: result,
       critMap,
-      separate: !!result.separate
+      separate: !!options.separate
     });
 
+    // Apply results to the targets passed to this method
     this.applyResultsToTargets(targets, rollResult);
 
     // For mod damage (when no message exists), create a new message
@@ -243,24 +244,30 @@ export class DamageAction {
       // Update the state with damage results before updating the card
       const updatedState = { ...state };
       if (rollResult.perTargetTotals) {
+        console.log("SW5E Helper: Updating state with damage results:", {
+          perTargetTotals: Object.fromEntries(rollResult.perTargetTotals),
+          perTargetTypes: Object.fromEntries(rollResult.perTargetTypes),
+          stateTargets: updatedState.targets?.map(t => ({ 
+            ref: this.getTargetRef(t), 
+            currentDamage: t.damage?.total || 0 
+          }))
+        });
+        
         // Ensure targets have damage information
         if (updatedState.targets) {
           updatedState.targets = updatedState.targets.map(target => {
             const ref = this.getTargetRef(target);
             const total = rollResult.perTargetTotals.get(ref);
             if (total != null) {
-              // Find the corresponding target from the damage action results
-              const damageTarget = targets.find(t => this.getTargetRef(t) === ref);
-              if (damageTarget && damageTarget.damage) {
-                return {
-                  ...target,
-                  damage: {
-                    ...target.damage,
-                    total: (target.damage?.total || 0) + damageTarget.damage.total,
-                    types: { ...target.damage?.types, ...damageTarget.damage.types }
-                  }
-                };
-              }
+              console.log(`SW5E Helper: Updating target ${ref} with damage ${total}`);
+              return {
+                ...target,
+                damage: {
+                  total: total, // Override with new damage total
+                  types: rollResult.perTargetTypes.get(ref) || { kinetic: total },
+                  info: rollResult.info || ""
+                }
+              };
             }
             return target;
           });
@@ -294,6 +301,8 @@ export class DamageAction {
         critMap,
         separate: !!config.separate
       });
+
+
 
       // Create simple chat message
       await this.createManualMessage(actor, item, targetRefs, rollResult);
@@ -382,7 +391,10 @@ export class DamageAction {
       return formula;
     };
 
+    console.log("SW5E Helper: executeRoll called with:", { separate, targetCount: targets.length, critMap });
+    
     if (separate) {
+      console.log("SW5E Helper: Using separate rolls per target");
       // Separate rolls per target
       for (const target of targets) {
         const ref = this.getTargetRef(target);
@@ -398,8 +410,11 @@ export class DamageAction {
         
         perTargetTotals.set(ref, roll.total ?? 0);
         perTargetTypes.set(ref, this.getDamageTypes(item, roll.total));
+        
+        console.log(`SW5E Helper: Target ${ref} (crit: ${isCrit}) rolled ${roll.total} damage`);
       }
     } else {
+      console.log("SW5E Helper: Using shared rolls by crit status");
       // Shared rolls by crit status
       const critTargets = [];
       const normalTargets = [];
@@ -413,6 +428,11 @@ export class DamageAction {
         }
       }
 
+      console.log("SW5E Helper: Target grouping:", { 
+        critTargets: critTargets.map(t => t.ref), 
+        normalTargets: normalTargets.map(t => t.ref) 
+      });
+
       // Roll for crits
       if (critTargets.length) {
         const formula = buildFormula(true);
@@ -425,6 +445,8 @@ export class DamageAction {
 
         const total = roll.total ?? 0;
         const types = this.getDamageTypes(item, total);
+
+        console.log(`SW5E Helper: Crit roll: ${formula} = ${total}, applying to ${critTargets.length} targets`);
 
         for (const { ref } of critTargets) {
           perTargetTotals.set(ref, total);
@@ -445,12 +467,16 @@ export class DamageAction {
         const total = roll.total ?? 0;
         const types = this.getDamageTypes(item, total);
 
+        console.log(`SW5E Helper: Normal roll: ${formula} = ${total}, applying to ${normalTargets.length} targets`);
+
         for (const { ref } of normalTargets) {
           perTargetTotals.set(ref, total);
           perTargetTypes.set(ref, types);
         }
       }
     }
+    
+    console.log("SW5E Helper: Final perTargetTotals:", Object.fromEntries(perTargetTotals));
 
     return {
       rolls,
