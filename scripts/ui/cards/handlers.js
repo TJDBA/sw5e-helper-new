@@ -141,11 +141,10 @@ export class CardHandlers {
       
       // Execute quick damage
       const result = await DamageAction.execute({
-        actor,
-        item,
+        actorId: state.actorId,
+        itemId: state.itemId,
         config: state.options || {},
-        targets,
-        state
+        targetIds: targets.map(t => CardHandlers.resolveTargetRef(t))
       });
       
       if (result.ok) {
@@ -165,8 +164,8 @@ export class CardHandlers {
     console.log("SW5E Helper: Handling mod damage for target:", targetRef);
     
     try {
-      // Import the damage dialog
-      const { DamageDialog } = await import('../dialogs/DamageDialog.js');
+      // Import the damage action
+      const { DamageAction } = await import('../../workflow/actions/damage.js');
       
       const actor = game.actors?.get(state.actorId);
       const item = actor?.items?.get(state.itemId);
@@ -179,16 +178,14 @@ export class CardHandlers {
         return;
       }
       
-      // Create and show the damage dialog
-      const dialog = new DamageDialog({
-        actor,
-        item,
-        config: state.options || {},
-        targets: targetRef ? [this.resolveTargetRef(targetRef)] : state.targets,
-        state: state
-      });
+      // Get the original attack message to update it
+      const originalMessage = state.messageId ? game.messages?.get(state.messageId) : null;
       
-      await dialog.render(true);
+      // Use the proper damage action workflow to open the dialog and execute damage
+      await DamageAction.openDamageDialog(state, state.targets, originalMessage, {
+        targetRef,
+        separate: !!state.options?.separate // Use the original attack's separate setting
+      });
       
     } catch (error) {
       console.error("SW5E Helper: Error opening damage dialog:", error);
@@ -290,7 +287,7 @@ export class CardHandlers {
       }
       
       // Resolve the specific target
-      const target = this.resolveTargetRef(targetRef);
+      const target = CardHandlers.resolveTargetRef(targetRef);
       if (!target) {
         ui.notifications?.warn?.("Could not resolve target reference");
         return;
@@ -322,29 +319,24 @@ export class CardHandlers {
     console.log("SW5E Helper: Handling row damage modification for target:", targetRef);
     
     try {
-      // Import the damage dialog
-      const { DamageDialog } = await import('../dialogs/DamageDialog.js');
+      // Import the damage action
+      const { DamageAction } = await import('../../workflow/actions/damage.js');
       
       // Resolve the specific target
-      const target = this.resolveTargetRef(targetRef);
+      const target = CardHandlers.resolveTargetRef(targetRef);
       if (!target) {
         ui.notifications?.warn?.("Could not resolve target reference");
         return;
       }
       
-      // Create and show the damage dialog for this specific target
-      const actor = game.actors?.get(state.actorId);
-      const item = actor?.items?.get(state.itemId);
+      // Get the original attack message to update it
+      const originalMessage = state.messageId ? game.messages?.get(state.messageId) : null;
       
-      const dialog = new DamageDialog({
-        actor,
-        item,
-        config: state.options || {},
-        targets: [target],
-        state: state
+      // Use the proper damage action workflow to open the dialog and execute damage
+      await DamageAction.openDamageDialog(state, [target], originalMessage, {
+        targetRef,
+        separate: !!state.options?.separate // Use the original attack's separate setting
       });
-      
-      await dialog.render(true);
       
     } catch (error) {
       console.error("SW5E Helper: Error opening row damage dialog:", error);

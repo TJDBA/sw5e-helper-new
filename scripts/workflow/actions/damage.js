@@ -231,11 +231,44 @@ export class DamageAction {
 
     this.applyResultsToTargets(targets, rollResult);
 
-    if (rollResult.rolls?.length) {
-      await this.appendRolls(message, rollResult.rolls);
+    // For mod damage (when no message exists), create a new message
+    if (!message) {
+      await this.createManualMessage(actor, item, targets.map(t => this.getTargetRef(t)), rollResult);
+    } else {
+      // Update existing message if available
+      if (rollResult.rolls?.length) {
+        await this.appendRolls(message, rollResult.rolls);
+      }
+      
+      // Update the state with damage results before updating the card
+      const updatedState = { ...state };
+      if (rollResult.perTargetTotals) {
+        // Ensure targets have damage information
+        if (updatedState.targets) {
+          updatedState.targets = updatedState.targets.map(target => {
+            const ref = this.getTargetRef(target);
+            const total = rollResult.perTargetTotals.get(ref);
+            if (total != null) {
+              // Find the corresponding target from the damage action results
+              const damageTarget = targets.find(t => this.getTargetRef(t) === ref);
+              if (damageTarget && damageTarget.damage) {
+                return {
+                  ...target,
+                  damage: {
+                    ...target.damage,
+                    total: (target.damage?.total || 0) + damageTarget.damage.total,
+                    types: { ...target.damage?.types, ...damageTarget.damage.types }
+                  }
+                };
+              }
+            }
+            return target;
+          });
+        }
+      }
+      
+      await this.updateCard(message, updatedState);
     }
-
-    await this.updateCard(message, state);
   }
 
   /**
@@ -517,19 +550,22 @@ export class DamageAction {
   }
 
   static async updateCard(message, state) {
-    const content = CardRenderer.render(state);
+    // Create a CardRenderer instance and render the updated state
+    const { AttackCardRenderer } = await import('../../ui/cards/card-renderer.js');
+    const renderer = new AttackCardRenderer(state);
+    const content = await renderer.render();
+    
     return message.update({ 
       content,
-      flags: { "sw5e-helper": { state } }
+      flags: { "sw5e-helper-new": { state } }
     });
   }
 
   static async createManualMessage(actor, item, targetRefs, result) {
     const lines = targetRefs.length
-      ? Array.from(game.user.targets || []).map(token => {
-          const ref = `${token.document?.parent?.id ?? canvas.scene?.id}:${token.id}`;
+      ? targetRefs.map(ref => {
           const total = result.perTargetTotals.get(ref) ?? 0;
-          return `<div>${token.name}: <strong>${total}</strong></div>`;
+          return `<div>Target ${ref}: <strong>${total}</strong></div>`;
         })
       : [`<div>${item.name}: <strong>${result.singleTotal}</strong></div>`];
 

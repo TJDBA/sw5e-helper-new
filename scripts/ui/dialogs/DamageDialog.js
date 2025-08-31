@@ -3,6 +3,7 @@
  */
 import { FormulaUtils } from '../../core/dice/formula.js';
 import { moduleBasePath } from "../../config.js";
+import { Helpers } from '../../core/utils/helpers.js';
 
 export class DamageDialog extends FormApplication {
   static get defaultOptions() {
